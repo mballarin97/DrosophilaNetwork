@@ -1,0 +1,71 @@
+---
+jupyter:
+  jupytext:
+    formats: ipynb,Rmd
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.7.1
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import networkx as nx
+```
+
+```{python}
+neu = pd.read_csv('exported-traced-adjacencies/traced-neurons.csv')
+syn = pd.read_csv('exported-traced-adjacencies/traced-total-connections.csv')
+```
+
+```{python}
+G = nx.Graph()
+G.add_nodes_from(neu['bodyId'])
+syn['synaps'] = list(zip(syn.bodyId_pre, syn.bodyId_post))
+G.add_edges_from( syn['synaps'] )
+```
+
+```{python}
+deg = np.array([ d for n, d in G.degree()])
+```
+
+```{python}
+#bins = np.logspace(0, 4, 100)
+bins = 100
+y, x = np.histogram(deg, bins=bins)
+x = (x[1:]+x[:-1])/2
+```
+
+```{python}
+plt.loglog()
+plt.plot(x, y, 'ro')
+plt.xlabel('Log Degree log(k)')
+plt.ylabel('Log Frequency ')
+plt.title('Degree distribution')
+plt.show()
+```
+
+```{python}
+page = nx.algorithms.link_analysis.pagerank(G)
+```
+
+```{python}
+plt.hist(page.values(), bins=100)
+  
+plt.show()
+```
+
+```{python}
+neu
+```
+
+```{python}
+
+```
