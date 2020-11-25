@@ -21,8 +21,8 @@ import networkx as nx
 ```
 
 ```{python}
-neu = pd.read_csv('exported-traced-adjacencies/traced-neurons.csv')
-syn = pd.read_csv('exported-traced-adjacencies/traced-total-connections.csv')
+neu = pd.read_csv('Data/traced-neurons.csv')
+syn = pd.read_csv('Data/traced-total-connections.csv')
 ```
 
 ```{python}
@@ -34,6 +34,10 @@ G.add_edges_from( syn['synaps'] )
 
 ```{python}
 deg = np.array([ d for n, d in G.degree()])
+```
+
+```{python}
+deg.mean()
 ```
 
 ```{python}
