@@ -28,10 +28,19 @@ synapses_dataframe = pd.read_csv('exported-traced-adjacencies/traced-total-conne
 ```
 
 ```{python}
+neurons_dataframe.head()
+```
+
+```{python}
+# add link as 2-tuple between neurons bodyId
+synapses_dataframe['synaps'] = list(zip(synapses_dataframe.bodyId_pre, synapses_dataframe.bodyId_post))
+synapses_dataframe.head()
+```
+
+```{python}
 graph = nx.Graph()
 graph.add_nodes_from(neurons_dataframe['bodyId'])
-synapses_dataframe['synaps'] = list(zip(synapses_dataframe.bodyId_pre, synapses_dataframe.bodyId_post))
-graph.add_edges_from(synapses_dataframe['synaps'] )
+graph.add_edges_from(synapses_dataframe['synaps'])
 ```
 
 ```{python}
@@ -46,6 +55,7 @@ x = (x[1:]+x[:-1])/2
 ```
 
 ```{python}
+# plot degree bins
 plt.loglog()
 plt.plot(x, y, 'ro')
 plt.xlabel('Log Degree log(k)')
@@ -56,7 +66,8 @@ plt.show()
 ```
 
 ```{python}
-start_time = time.time()
+# compute pagerank ranking
+tart_time = time.time()
 
 page = nx.algorithms.link_analysis.pagerank(graph)
 
@@ -68,14 +79,6 @@ print("Total time: {:.2f} minutes".format((end_time - start_time)/60))
 plt.hist(page.values(), bins=100)
   
 plt.show()
-```
-
-```{python}
-neurons_dataframe
-```
-
-```{python}
-
 ```
 
 ```{python}
