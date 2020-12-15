@@ -14,17 +14,30 @@ jupyter:
 ---
 
 ```{python}
-import time
-
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
+# Network analysis
 import networkx as nx
+from scipy import sparse
+from fast_pagerank import pagerank_power
+# Data handling
+import pandas as pd
+# Visualization
+import matplotlib.pyplot as plt
+# Miscellaneous
+import time
+import numpy as np
 ```
+
+## Importing datasets
+- neurons_dataframe contains neuron number (body_id). The body_id is an [unique identifier](https://en.wikipedia.org/wiki/Unique_identifier#:~:text=A%20unique%20identifier%20(UID)%20is,with%20an%20atomic%20data%20type.). It also contains the neuron cell type (type) and the neuron unique name (instance).
+- synapses_dataframe contains the sparse connectivity matrix of the network;
+- roi_dataframe contains also the region of interest of the connection, but some of them are repeated, i.e. we have the same couple of connecting neurons in different regions (maybe they are not sure)
+
+https://asajadi.github.io/fast-pagerank/
 
 ```{python}
 neurons_dataframe = pd.read_csv('exported-traced-adjacencies/traced-neurons.csv')
 synapses_dataframe = pd.read_csv('exported-traced-adjacencies/traced-total-connections.csv')
+roi_dataframe = pd.read_csv('exported-traced-adjacencies/traced-roi-connections.csv')
 ```
 
 ```{python}
@@ -32,10 +45,24 @@ neurons_dataframe.head()
 ```
 
 ```{python}
+len( neurons_dataframe['type'].unique() ) 
+```
+
+```{python}
 # add link as 2-tuple between neurons bodyId
 synapses_dataframe['synaps'] = list(zip(synapses_dataframe.bodyId_pre, synapses_dataframe.bodyId_post))
 synapses_dataframe.head()
 ```
+
+```{python}
+roi_dataframe.head()
+```
+
+```{python}
+roi_dataframe['roi'].unique() 
+```
+
+## Graph
 
 ```{python}
 graph = nx.Graph()
@@ -65,11 +92,39 @@ plt.grid()
 plt.show()
 ```
 
+# Coarse graining 
+To apply our coarse graining procedure we aggregate the nodes with their nearest neighbors, where the concept of nearest is choosen using one of the following centrality measures:
+- **local page rank**. The local page rank gives the proximity of the nodes with respect to the chosen node. So the second highest node is gonna be merged with the one where the lpr is computed. Networkx creates each time the sparse matrix, which is a time consuming task. We need to compute the page rank several times, and so chosen to use another representation;
+- **link strength**. We merge the more connected or the less connected (with the idea that they are not influencing the graph properties)
+
+```{python}
+SM = nx.convert_matrix.to_scipy_sparse_matrix(graph)
+```
+
+```{python}
+start_time = time.time()
+locality = np.zeros(len(neurons_dataframe))
+locality[0] = 1        
+pr=pagerank_power(SM, p=0.85, personalize=locality, tol=1e-6)
+end_time = time.time()
+print("Total time: {:.2f} seconds".format((end_time - start_time)))
+```
+
 ```{python}
 # compute pagerank ranking
-tart_time = time.time()
+start_time = time.time()
 
-page = nx.algorithms.link_analysis.pagerank(graph)
+page = nx.algorithms.link_analysis.pagerank(graph, personalization={'200326126' : 1}, dangling={'200326126' : 1})
+
+end_time = time.time()
+print("Total time: {:.2f} minutes".format((end_time - start_time)/60))
+```
+
+```{python}
+# compute pagerank ranking
+start_time = time.time()
+    
+page = nx.algorithms.link_analysis.pagerank_scipy(graph,max_iter=int(1e3), personalization={'200326126' : 1}, dangling={'200326126' : 1})
 
 end_time = time.time()
 print("Total time: {:.2f} minutes".format((end_time - start_time)/60))
@@ -80,6 +135,19 @@ plt.hist(page.values(), bins=100)
   
 plt.show()
 ```
+
+# To do list
+- list brain regions to create different $12$ theoretical communities;
+- understand what the $12$ regions does; 
+- Understand brain section of neurons;
+- netorkx documentation (algorithms in particular);
+- Local connectivity measure;
+- Define coarse graining procedure;
+- Community detection;
+- Save local copy of results;
+- Betweenness, centrality, small world characteristics, distance from random network;
+- Plot every measure
+- robustness to cuts. In particular it may be interesting to attack outer regions of the brain, the more easily damaged. The  **common connectome constraint paper** already say something about it;
 
 ```{python}
 
