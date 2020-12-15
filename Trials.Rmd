@@ -14,6 +14,8 @@ jupyter:
 ---
 
 ```{python}
+import time
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -21,49 +23,62 @@ import networkx as nx
 ```
 
 ```{python}
-neu = pd.read_csv('exported-traced-adjacencies/traced-neurons.csv')
-syn = pd.read_csv('exported-traced-adjacencies/traced-total-connections.csv')
+neurons_dataframe = pd.read_csv('exported-traced-adjacencies/traced-neurons.csv')
+synapses_dataframe = pd.read_csv('exported-traced-adjacencies/traced-total-connections.csv')
 ```
 
 ```{python}
-G = nx.Graph()
-G.add_nodes_from(neu['bodyId'])
-syn['synaps'] = list(zip(syn.bodyId_pre, syn.bodyId_post))
-G.add_edges_from( syn['synaps'] )
+neurons_dataframe.head()
 ```
 
 ```{python}
-deg = np.array([ d for n, d in G.degree()])
+# add link as 2-tuple between neurons bodyId
+synapses_dataframe['synaps'] = list(zip(synapses_dataframe.bodyId_pre, synapses_dataframe.bodyId_post))
+synapses_dataframe.head()
+```
+
+```{python}
+graph = nx.Graph()
+graph.add_nodes_from(neurons_dataframe['bodyId'])
+graph.add_edges_from(synapses_dataframe['synaps'])
+```
+
+```{python}
+degree = np.array([ d for n, d in graph.degree()])
 ```
 
 ```{python}
 #bins = np.logspace(0, 4, 100)
 bins = 100
-y, x = np.histogram(deg, bins=bins)
+y, x = np.histogram(degree, bins=bins)
 x = (x[1:]+x[:-1])/2
 ```
 
 ```{python}
+# plot degree bins
 plt.loglog()
 plt.plot(x, y, 'ro')
 plt.xlabel('Log Degree log(k)')
 plt.ylabel('Log Frequency ')
 plt.title('Degree distribution')
+plt.grid()
 plt.show()
 ```
 
 ```{python}
-page = nx.algorithms.link_analysis.pagerank(G)
+# compute pagerank ranking
+tart_time = time.time()
+
+page = nx.algorithms.link_analysis.pagerank(graph)
+
+end_time = time.time()
+print("Total time: {:.2f} minutes".format((end_time - start_time)/60))
 ```
 
 ```{python}
 plt.hist(page.values(), bins=100)
   
 plt.show()
-```
-
-```{python}
-neu
 ```
 
 ```{python}
