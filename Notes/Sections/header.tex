@@ -1,0 +1,76 @@
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{layouts}
+\usepackage[english]{babel}
+\usepackage{microtype}
+\usepackage{biblatex}
+\addbibresource{bibliography.bib}
+
+% Page layout
+\usepackage{fancyhdr}
+\usepackage[a4paper,width=150mm,top=30mm,bottom=30mm]{geometry}
+\usepackage{multicol}
+\setlength{\columnsep}{1cm}
+\usepackage{changepage}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\leftmark}
+\rhead{\rightmark}
+\cfoot{Network science 2020/21 \\  \thepage}
+\renewcommand{\headrulewidth}{2pt}
+\renewcommand{\footrulewidth}{1pt}
+
+% Physics and math
+\usepackage{physics}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Images
+\usepackage{graphics}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.16}
+\usepackage{xcolor}
+\usepackage{subcaption}
+
+
+% Code
+\usepackage{listings}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    language=fortran,
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+
+% User-defined commands
+\newcommand{\bb}[1]{\mathbb{#1}}
+\newcommand{\tb}[1]{\textbf{#1}}
+\newcommand{\pdd}[2]{\frac{\partial^2}{\partial{#2}^2}\left(#1 \right)}
+\newcommand{\red}[1]{{\color{red} #1}}
+\newcommand{\green}[1]{{\color{green} #1}}
+\newcommand{\blue}[1]{{\color{blue} #1}}
+
