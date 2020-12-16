@@ -14,26 +14,62 @@ jupyter:
 ---
 
 ```{python}
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
+# Network analysis
 import networkx as nx
+from scipy import sparse
+from fast_pagerank import pagerank_power
+# Data handling
+import pandas as pd
+# Visualization
+import matplotlib.pyplot as plt
+import igraph as ig
+import cairocffi as cairo
+# Miscellaneous
+import time
+import numpy as np
+```
+
+## Importing datasets
+- neurons_dataframe contains neuron number (body_id). The body_id is an [unique identifier](https://en.wikipedia.org/wiki/Unique_identifier#:~:text=A%20unique%20identifier%20(UID)%20is,with%20an%20atomic%20data%20type.). It also contains the neuron cell type (type) and the neuron unique name (instance).
+- synapses_dataframe contains the sparse connectivity matrix of the network;
+- roi_dataframe contains also the region of interest of the connection, but some of them are repeated, i.e. we have the same couple of connecting neurons in different regions (maybe they are not sure)
+
+https://asajadi.github.io/fast-pagerank/
+
+```{python}
+neurons_dataframe = pd.read_csv('exported-traced-adjacencies/traced-neurons.csv')
+synapses_dataframe = pd.read_csv('exported-traced-adjacencies/traced-total-connections.csv')
+roi_dataframe = pd.read_csv('exported-traced-adjacencies/traced-roi-connections.csv')
 ```
 
 ```{python}
-neu = pd.read_csv('Data/traced-neurons.csv')
-syn = pd.read_csv('Data/traced-total-connections.csv')
+len( neurons_dataframe['type'].unique() ) 
 ```
 
 ```{python}
-G = nx.Graph()
-G.add_nodes_from(neu['bodyId'])
-syn['synaps'] = list(zip(syn.bodyId_pre, syn.bodyId_post))
-G.add_edges_from( syn['synaps'] )
+# add link as 2-tuple between neurons bodyId
+synapses_dataframe['synaps'] = list(zip(synapses_dataframe.bodyId_pre, synapses_dataframe.bodyId_post))
+synapses_dataframe.head()
 ```
 
 ```{python}
-deg = np.array([ d for n, d in G.degree()])
+roi_dataframe.head()
+```
+
+```{python}
+roi_dataframe['roi'].unique() 
+```
+
+## Graph
+
+```{python}
+graph = nx.Graph()
+graph.add_nodes_from(neurons_dataframe['bodyId'])
+graph.add_edges_from(synapses_dataframe['synaps'])
+```
+
+```{python}
+degree = np.array([ d for n, d in graph.degree()])
 ```
 
 ```{python}
@@ -43,21 +79,57 @@ deg.mean()
 ```{python}
 #bins = np.logspace(0, 4, 100)
 bins = 100
-y, x = np.histogram(deg, bins=bins)
+y, x = np.histogram(degree, bins=bins)
 x = (x[1:]+x[:-1])/2
 ```
 
 ```{python}
+# plot degree bins
 plt.loglog()
 plt.plot(x, y, 'ro')
 plt.xlabel('Log Degree log(k)')
 plt.ylabel('Log Frequency ')
 plt.title('Degree distribution')
+plt.grid()
 plt.show()
 ```
 
+# Coarse graining 
+To apply our coarse graining procedure we aggregate the nodes with their nearest neighbors, where the concept of nearest is choosen using one of the following centrality measures:
+- **local page rank**. The local page rank gives the proximity of the nodes with respect to the chosen node. So the second highest node is gonna be merged with the one where the lpr is computed. Networkx creates each time the sparse matrix, which is a time consuming task. We need to compute the page rank several times, and so chosen to use another representation;
+- **link strength**. We merge the more connected or the less connected (with the idea that they are not influencing the graph properties)
+
 ```{python}
-page = nx.algorithms.link_analysis.pagerank(G)
+SM = nx.convert_matrix.to_scipy_sparse_matrix(graph)
+```
+
+```{python}
+start_time = time.time()
+locality = np.zeros(len(neurons_dataframe))
+locality[0] = 1        
+pr=pagerank_power(SM, p=0.85, personalize=locality, tol=1e-6)
+end_time = time.time()
+print("Total time: {:.2f} seconds".format((end_time - start_time)))
+```
+
+```{python}
+# compute pagerank ranking
+start_time = time.time()
+
+page = nx.algorithms.link_analysis.pagerank(graph, personalization={'200326126' : 1}, dangling={'200326126' : 1})
+
+end_time = time.time()
+print("Total time: {:.2f} minutes".format((end_time - start_time)/60))
+```
+
+```{python}
+# compute pagerank ranking
+start_time = time.time()
+    
+page = nx.algorithms.link_analysis.pagerank_scipy(graph,max_iter=int(1e3), personalization={'200326126' : 1}, dangling={'200326126' : 1})
+
+end_time = time.time()
+print("Total time: {:.2f} minutes".format((end_time - start_time)/60))
 ```
 
 ```{python}
@@ -67,8 +139,70 @@ plt.show()
 ```
 
 ```{python}
-neu
+
 ```
+
+## Approximate visualization of main brain regions
+
+```{python}
+names = ['GNG', 'PENP', 'VMNP', 'CX', 'LX', 'AL', 'MB', 'INP', 'VLNP', 'OL', 'SNP', 'LH']
+links = [('GNG', 'PENP'), ('PENP', 'VMNP'), ('PENP', 'CX'), ('PENP', 'LX'), ('VMNP', 'CX'),
+         ('VMNP', 'LX'), ('CX', 'LX'), ('CX', 'AL'), ('LX', 'AL'), ('AL', 'INP'), 
+         ('AL', 'MB'), ('INP', 'VLNP'), ('VLNP', 'OL'), ('MB', 'SNP'), ('SNP', 'LH')]
+```
+
+```{python}
+high_lvl_brain = nx.Graph()
+high_lvl_brain.add_nodes_from(names)
+high_lvl_brain.add_edges_from(links)
+high_lvl_brain_ig = ig.Graph.from_networkx(high_lvl_brain)
+```
+
+```{python}
+colors = ig.drawing.colors.known_colors
+colors = list(colors.keys())
+print(colors)
+```
+
+```{python}
+#set label to be names of nx graph nodes
+high_lvl_brain_ig.vs["label"] = high_lvl_brain_ig.vs["_nx_name"]
+
+visual_style = {}
+#node size
+visual_style["vertex_size"] = 20
+#node color
+c = [0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0]
+n_names = np.array(['deep sky blue', 'magenta4'])
+visual_style["vertex_color"] = n_names[c]  
+#node label
+visual_style["vertex_label"] = high_lvl_brain_ig.vs["label"]
+#node label color
+visual_style["vertex_label_color"] = "black"
+#node label size
+visual_style["vertex_label_size"] = 15
+#edge thickness
+visual_style["edge_width"] = 2
+#bounding box
+visual_style["bbox"] = (500, 500)
+#margin
+visual_style["margin"] = 20
+
+ig.plot(high_lvl_brain_ig, "high_lvl_brain.pdf", **visual_style, layout="kk")
+```
+
+# To do list
+- list brain regions to create different $12$ theoretical communities;
+- understand what the $12$ regions does; 
+- Understand brain section of neurons;
+- netorkx documentation (algorithms in particular);
+- Local connectivity measure;
+- Define coarse graining procedure;
+- Community detection;
+- Save local copy of results;
+- Betweenness, centrality, small world characteristics, distance from random network;
+- Plot every measure
+- robustness to cuts. In particular it may be interesting to attack outer regions of the brain, the more easily damaged. The  **common connectome constraint paper** already say something about it;
 
 ```{python}
 
