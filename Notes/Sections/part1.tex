@@ -1,0 +1,44 @@
+\section{Coarse graining}
+It is necessary to define rigorously a way to apply the 
+coarse graining procedure, i.e. our way to combine different
+neurons in super-neurons. We stress that this procedure
+is not simple at all, and present different degrees of freedom
+that can (and will) be chosen with respect to the performances
+on the data. We start by defining these degrees of freedom:
+\begin{itemize}
+    \item the \tb{metric} $d_{ij}$ that we use to define when two 
+        different neurons are similar;
+    \item The way in which we aggregate the weights after we combine 
+        two nodes. In particular, we are interested in keeping the 
+        degree distribution the same. We so define a \tb{threshold} $\theta$.
+    \item add if you think of others
+\end{itemize}
+We so present the steps of the algorithms, calling $n_i^(\alpha)$ the $i$-th 
+neuron at the $\alpha$-th iteration in the coarse graining algorithm and $w_{ij}^{()\alpha)}$
+the links between neurons $n_i^{(\alpha)}$, $n_j^{(\alpha)}$:
+\begin{enumerate}
+    \item Pick a neuron $n_i^{(\alpha)}$ at random;
+    \item Compute the distance $d_i^{(\alpha)}=(d_{i1}^{(\alpha)}, d_{i2}^{(\alpha)}, \dots, d_{iN}^{(\alpha)})$;
+    \item Combine the two nearest neurons:
+        $$
+        n_i^{(\alpha+1)} = \left\{ n_i^{(\alpha)}, \min_{d_i}\left[n_k^{(\alpha)}\right] \right\}
+        $$
+    \item Build the new network connections:
+        $$
+        w_{ij}^{(\alpha+1)} = \left\{ w_{ij}^{(\alpha)}, \bar{w}_{kj}^{(\alpha)}   \right\}
+        $$
+        where
+        $$
+        \bar{w}_{kj}^{(\alpha)}= w_{kj}^{(\alpha)}\cdot \Theta\left( \frac{w_{kj}^{(\alpha)}}{\sum_j w_{kj}^{(\alpha)}}-\theta \right)
+        $$
+        where $\Theta(t)$ is the Heavyside function. Using the normalized weights in $\Theta(t)$ we
+        stress the fact that node sparsely connected has stronger connections than the widely connected.
+    \item Start again from point 1.
+\end{enumerate} 
+\red{\tb{ATTENTION: this algorithm has not been proved yet. In particular the part with the normalization
+        of the weights: it may "break" the network structure due to the presence 
+        of Hubs. In particular, given the algorithm structure, merging a Hub to a sparsely connected node
+        may not produce a Hub.}}
+
+
+

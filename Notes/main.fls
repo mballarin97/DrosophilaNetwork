@@ -1,15 +1,15 @@
-PWD /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes
+PWD /Users/Marco/git/DrosophilaNetwork/Notes
 INPUT /usr/local/texlive/2020/texmf.cnf
 INPUT /usr/local/texlive/2020/texmf-dist/web2c/texmf.cnf
 INPUT /usr/local/texlive/2020/texmf-var/web2c/pdftex/pdflatex.fmt
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.tex
-OUTPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.log
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.tex
+OUTPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.log
 INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/base/article.cls
 INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/base/article.cls
 INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/base/size10.clo
 INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/base/size10.clo
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/Sections/header.tex
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/Sections/header.tex
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/Sections/header.tex
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/Sections/header.tex
 INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/base/inputenc.sty
 INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/base/inputenc.sty
 INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/hyperref/hyperref.sty
@@ -310,11 +310,9 @@ INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/listings/listings.cfg
 INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/listings/listings.cfg
 INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/listings/lstlang1.sty
 INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/listings/lstlang1.sty
-INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/listings/lstlang1.sty
-INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/listings/lstlang1.sty
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.aux
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.aux
-OUTPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.aux
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.aux
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.aux
+OUTPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.aux
 INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/lm/t1lmr.fd
 INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/lm/t1lmr.fd
 INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/lm/ec-lmr10.tfm
@@ -324,22 +322,22 @@ INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/refcount/refcount.sty
 INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/refcount/refcount.sty
 INPUT /usr/local/texlive/2020/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty
 INPUT /usr/local/texlive/2020/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.out
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.out
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.out
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.out
-OUTPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.pdf
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.out
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.out
-OUTPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.out
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.out
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.out
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.out
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.out
+OUTPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.pdf
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.out
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.out
+OUTPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.out
 INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/microtype/mt-cmr.cfg
 INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/microtype/mt-cmr.cfg
 INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/biblatex/lbx/english.lbx
 INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/biblatex/lbx/english.lbx
-OUTPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.bcf
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.bbl
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.bbl
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.bbl
+OUTPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.bcf
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.bbl
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.bbl
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.bbl
 INPUT /usr/local/texlive/2020/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 INPUT /usr/local/texlive/2020/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
@@ -352,20 +350,68 @@ INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/lm/ec-lmbx10.tfm
 INPUT /usr/local/texlive/2020/texmf-var/fonts/map/pdftex/updmap/pdftex.map
 INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/lm/ec-lmr12.tfm
 INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/lm/ec-lmbx12.tfm
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.toc
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.toc
-OUTPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.toc
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/Sections/ideas.tex
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/Sections/ideas.tex
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/Images/high_lvl_brain.pdf
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/Images/high_lvl_brain.pdf
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/Images/high_lvl_brain.pdf
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.aux
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.out
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.out
-INPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.run.xml
-OUTPUT /Users/Marco/Desktop/Unipd/[LM] Physics of Data/2° year/Network science/Notes/main.run.xml
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.toc
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.toc
+OUTPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.toc
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/Sections/brain.tex
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/Sections/brain.tex
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/Images/high_lvl_brain.pdf
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/Images/high_lvl_brain.pdf
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/Images/high_lvl_brain.pdf
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/Sections/part1.tex
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/Sections/part1.tex
+INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/lm/ts1lmr.fd
+INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/lm/ts1lmr.fd
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/lm/ts1-lmr10.tfm
+INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/lm/ot1lmr.fd
+INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/lm/ot1lmr.fd
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/lm/rm-lmr10.tfm
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/lm/rm-lmr7.tfm
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/lm/rm-lmr5.tfm
+INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/lm/omllmm.fd
+INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/lm/omllmm.fd
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/lm/lmmi10.tfm
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/lm/lmmi7.tfm
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/lm/lmmi5.tfm
+INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/lm/omslmsy.fd
+INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/lm/omslmsy.fd
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/lm/lmsy10.tfm
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/lm/lmsy7.tfm
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/lm/lmsy5.tfm
+INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/lm/omxlmex.fd
+INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/lm/omxlmex.fd
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/lm/lmex10.tfm
+INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/amsfonts/umsa.fd
+INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/amsfonts/umsa.fd
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
+INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/microtype/mt-msa.cfg
+INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/microtype/mt-msa.cfg
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam7.tfm
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam5.tfm
+INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/amsfonts/umsb.fd
+INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/amsfonts/umsb.fd
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
+INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/microtype/mt-msb.cfg
+INPUT /usr/local/texlive/2020/texmf-dist/tex/latex/microtype/mt-msb.cfg
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm7.tfm
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm5.tfm
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.aux
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.out
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.out
+INPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.run.xml
+OUTPUT /Users/Marco/git/DrosophilaNetwork/Notes/main.run.xml
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/enc/dvips/lm/lm-mathex.enc
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc
 INPUT /usr/local/texlive/2020/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc
 INPUT /usr/local/texlive/2020/texmf-dist/fonts/type1/public/lm/lmbx10.pfb
 INPUT /usr/local/texlive/2020/texmf-dist/fonts/type1/public/lm/lmbx12.pfb
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/type1/public/lm/lmex10.pfb
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/type1/public/lm/lmmi10.pfb
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/type1/public/lm/lmmi5.pfb
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/type1/public/lm/lmmi7.pfb
 INPUT /usr/local/texlive/2020/texmf-dist/fonts/type1/public/lm/lmr10.pfb
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/type1/public/lm/lmr7.pfb
+INPUT /usr/local/texlive/2020/texmf-dist/fonts/type1/public/lm/lmsy10.pfb

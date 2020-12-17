@@ -1,0 +1,2 @@
+{"rule":"USE_TO_VERB","sentence":"^\\QWe start by defining these degrees of freedom: the metric \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q that we use to define when two different neurons are similar; The way in which we aggregate the weights after we combine two nodes.\\E$"}
+{"rule":"THE_SUPERLATIVE","sentence":"^\\Qadd if you think of others We so present the steps of the algorithms: Pick a neuron \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q at random; Compute the distance \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q; Combine the two nearest neurons, i.e.\\E$"}
