@@ -130,3 +130,11 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# LaTex output files
+/Notes/*
+!/Notes/Images/
+!/Notes/Sections/
+!/Notes/*.tex
+!/Notes/*.pdf
+!/Notes/*.bib
