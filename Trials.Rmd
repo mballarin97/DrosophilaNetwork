@@ -192,17 +192,21 @@ ig.plot(high_lvl_brain_ig, "high_lvl_brain.pdf", **visual_style, layout="kk")
 ```
 
 # To do list
-- ✔️ list brain regions to create different $12$ theoretical communities;
-- ✔️ understand what the $12$ regions does; 
-- ◻️ Understand brain section of neurons;
-- ◻️ netorkx documentation (algorithms in particular);
-- ◻️ Local connectivity measure;
-- ◻️ Define coarse graining procedure;
-- ◻️ Community detection;
-- ◻️ Save local copy of results;
-- ◻️ Betweenness, centrality, small world characteristics, distance from random network;
-- ◻️ Plot every measure
-- ◻️ robustness to cuts. In particular it may be interesting to attack outer regions of the brain, the more easily damaged. The  **common connectome constraint paper** already say something about it;
+1. ✔️ list brain regions to create different $12$ theoretical communities;
+2. ✔️ understand what the $12$ regions does; 
+3. 🟥 Understand brain section of neurons;
+4. ◻️ netorkx documentation (algorithms in particular);
+5. ◻️ Local connectivity measure;
+6. ◻️ Define coarse graining procedure;
+7. ◻️ Community detection;
+8. ◻️ Save local copy of results;
+9. ◻️ Betweenness, centrality, small world characteristics, distance from random network;
+10. ◻️ Plot every measure
+11. ◻️ robustness to cuts. In particular it may be interesting to attack outer regions of the brain, the more easily damaged. The  **common connectome constraint paper** already say something about it;
+
+
+###### Problems
+In point (3), we have that the same synapse (same link between two neurons, as we've defined it here) may belong to more than one region. We could add only the one with the highest weight, but often is not possible. Random?
 
 ```{python}
 
