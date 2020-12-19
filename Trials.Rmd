@@ -116,7 +116,7 @@ print("Total time: {:.2f} seconds".format((end_time - start_time)))
 # compute pagerank ranking
 start_time = time.time()
 
-page = nx.algorithms.link_analysis.pagerank(graph, personalization={'200326126' : 1}, dangling={'200326126' : 1})
+page = nx.algorithms.link_analysis.pagerank(graph)
 
 end_time = time.time()
 print("Total time: {:.2f} minutes".format((end_time - start_time)/60))
@@ -126,7 +126,7 @@ print("Total time: {:.2f} minutes".format((end_time - start_time)/60))
 # compute pagerank ranking
 start_time = time.time()
     
-page = nx.algorithms.link_analysis.pagerank_scipy(graph,max_iter=int(1e3), personalization={'200326126' : 1}, dangling={'200326126' : 1})
+page = nx.algorithms.link_analysis.pagerank_scipy(graph)
 
 end_time = time.time()
 print("Total time: {:.2f} minutes".format((end_time - start_time)/60))
