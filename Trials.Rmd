@@ -22,7 +22,7 @@ from fast_pagerank import pagerank_power
 import pandas as pd
 # Visualization
 import matplotlib.pyplot as plt
-import igraph as ig
+import jgraph as jg
 import cairocffi as cairo
 # Miscellaneous
 import time
@@ -73,7 +73,7 @@ degree = np.array([ d for n, d in graph.degree()])
 ```
 
 ```{python}
-deg.mean()
+degree.mean()
 ```
 
 ```{python}
@@ -203,7 +203,3 @@ ig.plot(high_lvl_brain_ig, "high_lvl_brain.pdf", **visual_style, layout="kk")
 - Betweenness, centrality, small world characteristics, distance from random network;
 - Plot every measure
 - robustness to cuts. In particular it may be interesting to attack outer regions of the brain, the more easily damaged. The  **common connectome constraint paper** already say something about it;
-
-```{python}
-
-```
