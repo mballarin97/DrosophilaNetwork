@@ -209,5 +209,10 @@ ig.plot(high_lvl_brain_ig, "high_lvl_brain.pdf", **visual_style, layout="kk")
 In point (3), we have that the same synapse (same link between two neurons, as we've defined it here) may belong to more than one region. We could add only the one with the highest weight, but often is not possible. Random?
 
 ```{python}
+matfig = plt.figure(figsize=(20,20))
+plt.matshow(nx.adjacency_matrix(graph).todense(), fignum=matfig.number, cmap=plt.get_cmap("binary"))
+```
+
+```{python}
 
 ```
