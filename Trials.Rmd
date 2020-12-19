@@ -228,16 +228,17 @@ ig.plot(high_lvl_brain_ig, "high_lvl_brain.pdf", **visual_style, layout="kk")
 
 # To do list
 1. ✔️ list brain regions to create different $12$ theoretical communities;
-2. ✔️ understand what the $12$ regions does; 
-3. 🟥 Understand brain section of neurons;
-4. ◻️ netorkx documentation (algorithms in particular);
-5. ◻️ Local connectivity measure;
-6. ◻️ Define coarse graining procedure;
-7. ◻️ Community detection;
-8. ◻️ Save local copy of results;
-9. ◻️ Betweenness, centrality, small world characteristics, distance from random network;
-10. ◻️ Plot every measure
-11. ◻️ robustness to cuts. In particular it may be interesting to attack outer regions of the brain, the more easily damaged. The  **common connectome constraint paper** already say something about it;
+1. ✔️ understand what the $12$ regions does; 
+1. 🟥 Understand brain section of neurons;
+1. ✔️ Check degree distribution is power law
+1. ◻️ netorkx documentation (algorithms in particular);
+1. ◻️ Local connectivity measure;
+1. ◻️ Define coarse graining procedure;
+1. ◻️ Community detection;
+1. ◻️ Save local copy of results;
+1. ◻️ Betweenness, centrality, small world characteristics, distance from random network;
+1. ◻️ Plot every measure
+1. ◻️ robustness to cuts. In particular it may be interesting to attack outer regions of the brain, the more easily damaged. The  **common connectome constraint paper** already say something about it;
 
 
 ###### Problems
