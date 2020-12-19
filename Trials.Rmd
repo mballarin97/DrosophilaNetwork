@@ -77,6 +77,41 @@ degree.mean()
 ```
 
 ```{python}
+loc, glob = nx.non_randomness(graph)
+print(glob)
+```
+
+See https://stackoverflow.com/questions/49908014/how-can-i-check-if-a-network-is-scale-free and https://pypi.org/project/powerlaw/
+
+I'm not completely sure about the parameters.
+
+```{python}
+# used for degree distribution and powerlaw test
+# reverse = True to have the cumulative distribution
+degree_sequence = sorted([d for n, d in graph.degree()], reverse=True) 
+# Power laws are probability distributions with the form:p(x)∝x−α
+import powerlaw 
+# NOTE: xmin is the data value beyond which distributions should be fitted. 
+# If None an optimal one will be calculated
+fit = powerlaw.Fit(degree_sequence) 
+fig2 = fit.plot_pdf(color='b', linewidth=2)
+fit.power_law.plot_pdf(color='g', linestyle='--', ax=fig2)
+plt.legend(["data", "power law"])
+R, p = fit.distribution_compare('power_law', 'exponential', normalized_ratio=True)
+print (f"Loglikelihood: {R:.2f}, p-value: {p:.2e}")
+```
+
+```{python}
+plt.figure(figsize=(10, 6))
+fit.distribution_compare('power_law', 'lognormal')
+fig4 = fit.plot_ccdf(linewidth=3, color='black')
+fit.power_law.plot_ccdf(ax=fig4, color='r', linestyle='--') #powerlaw
+fit.lognormal.plot_ccdf(ax=fig4, color='g', linestyle='--') #lognormal
+fit.stretched_exponential.plot_ccdf(ax=fig4, color='b', linestyle='--') #stretched_exponential
+plt.legend(["data", "power law", "log-normal", "stretched_exponential"])
+```
+
+```{python}
 #bins = np.logspace(0, 4, 100)
 bins = 100
 y, x = np.histogram(degree, bins=bins)
