@@ -287,8 +287,6 @@ plt.show()
 ```
 
 #### Degree connectivity
-
-
 The *average degree connectivity* is the average nearest neighbor degree of nodes with degree k. 
 
 ```{python}
@@ -301,6 +299,19 @@ plt.grid()
 plt.title("Average degree connectivity distribution")
 plt.xlabel("Average degree connectivity for degree k")
 plt.show()
+```
+
+#### Average clustering coefficient
+Time saver: avg_clustering_coeff = 0.31370364316752
+
+```{python}
+start_time = time.time()
+
+avg_clustering_coeff = nx.average_clustering(graph)
+print(f"Average clustering coefficient: {avg_clustering_coeff}")
+
+end_time = time.time()
+print("Total time: {:.2f} seconds".format((end_time - start_time)))
 ```
 
 ```{python}
