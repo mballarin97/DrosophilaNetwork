@@ -98,10 +98,7 @@ I'm not completely sure about the parameters.
 
 ```{python}
 degree = np.array([ d for n, d in graph.degree()])
-```
-
-```{python}
-degree.mean()
+print(degree.mean())
 ```
 
 ```{python}
@@ -266,6 +263,45 @@ ig.plot(high_lvl_brain_ig, "high_lvl_brain.pdf", **visual_style, layout="kk")
 
 ###### Problems
 In point (3), we have that the same synapse (same link between two neurons, as we've defined it here) may belong to more than one region. We could add only the one with the highest weight, but often is not possible. Random?
+
+
+## Average measures
+
+
+#### Degree
+
+```{python}
+degree = np.array([ d for n, d in graph.degree()])
+degree_mean = int(degree.mean())
+print(f"Degree mean: {degree_mean}")
+y, x = np.histogram(degree, bins=100)
+x = (x[1:]+x[:-1])/2
+# plot degree bins
+plt.loglog()
+plt.plot(x, y, 'ro')
+plt.xlabel('Log Degree log(k)')
+plt.ylabel('Log Frequency ')
+plt.title('Degree distribution')
+plt.grid()
+plt.show()
+```
+
+#### Degree connectivity
+
+
+The *average degree connectivity* is the average nearest neighbor degree of nodes with degree k. 
+
+```{python}
+avg_degree_connectivity = nx.average_degree_connectivity(graph)
+avg_degree_connectivity = np.array([i for k,i in avg_degree_connectivity.items()])
+print(f"Global average degree connectivity value: {int(avg_degree_connectivity.mean())}")
+
+plt.hist(avg_degree_connectivity, bins=200)
+plt.grid()
+plt.title("Average degree connectivity distribution")
+plt.xlabel("Average degree connectivity for degree k")
+plt.show()
+```
 
 ```{python}
 
