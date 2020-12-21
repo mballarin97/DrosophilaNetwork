@@ -52,6 +52,8 @@ synapses_dataframe['synaps'] = list(zip(synapses_dataframe.bodyId_pre, synapses_
 synapses_dataframe.head()
 ```
 
+#### Hemibrain regions of interest
+
 ```{python}
 roi_dataframe.head()
 ```
@@ -68,6 +70,32 @@ graph.add_nodes_from(neurons_dataframe['bodyId'])
 graph.add_edges_from(synapses_dataframe['synaps'])
 ```
 
+#### Adjacency matrix
+
+```{python}
+matfig = plt.figure(figsize=(20,20))
+plt.matshow(nx.adjacency_matrix(graph).todense(), fignum=matfig.number, cmap=plt.get_cmap("binary"))
+```
+
+#### Non-randomness coefficient
+
+```{python}
+"""
+start_time = time.time()
+loc, glob = nx.non_randomness(graph)
+print(glob)
+end_time = time.time()
+print("Total time: {:.2f} seconds".format((end_time - start_time)))
+"""
+```
+
+#### Degree distribution and properties
+
+
+See https://stackoverflow.com/questions/49908014/how-can-i-check-if-a-network-is-scale-free and https://pypi.org/project/powerlaw/
+
+I'm not completely sure about the parameters.
+
 ```{python}
 degree = np.array([ d for n, d in graph.degree()])
 ```
@@ -75,15 +103,6 @@ degree = np.array([ d for n, d in graph.degree()])
 ```{python}
 degree.mean()
 ```
-
-```{python}
-loc, glob = nx.non_randomness(graph)
-print(glob)
-```
-
-See https://stackoverflow.com/questions/49908014/how-can-i-check-if-a-network-is-scale-free and https://pypi.org/project/powerlaw/
-
-I'm not completely sure about the parameters.
 
 ```{python}
 # used for degree distribution and powerlaw test
@@ -133,6 +152,9 @@ plt.show()
 To apply our coarse graining procedure we aggregate the nodes with their nearest neighbors, where the concept of nearest is choosen using one of the following centrality measures:
 - **local page rank**. The local page rank gives the proximity of the nodes with respect to the chosen node. So the second highest node is gonna be merged with the one where the lpr is computed. Networkx creates each time the sparse matrix, which is a time consuming task. We need to compute the page rank several times, and so chosen to use another representation;
 - **link strength**. We merge the more connected or the less connected (with the idea that they are not influencing the graph properties)
+
+
+#### PageRank measure
 
 ```{python}
 SM = nx.convert_matrix.to_scipy_sparse_matrix(graph)
@@ -236,18 +258,14 @@ ig.plot(high_lvl_brain_ig, "high_lvl_brain.pdf", **visual_style, layout="kk")
 1. ◻️ Define coarse graining procedure;
 1. ◻️ Community detection;
 1. ◻️ Save local copy of results;
-1. ◻️ Betweenness, centrality, small world characteristics, distance from random network;
+1. ◻️ Betweenness, centrality, small world characteristics;
+1. ✔️Distance from random network;
 1. ◻️ Plot every measure
 1. ◻️ robustness to cuts. In particular it may be interesting to attack outer regions of the brain, the more easily damaged. The  **common connectome constraint paper** already say something about it;
 
 
 ###### Problems
 In point (3), we have that the same synapse (same link between two neurons, as we've defined it here) may belong to more than one region. We could add only the one with the highest weight, but often is not possible. Random?
-
-```{python}
-matfig = plt.figure(figsize=(20,20))
-plt.matshow(nx.adjacency_matrix(graph).todense(), fignum=matfig.number, cmap=plt.get_cmap("binary"))
-```
 
 ```{python}
 
