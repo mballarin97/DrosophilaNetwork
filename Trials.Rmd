@@ -192,10 +192,6 @@ plt.hist(page.values(), bins=100)
 plt.show()
 ```
 
-```{python}
-
-```
-
 ## Approximate visualization of main brain regions
 
 ```{python}
@@ -312,6 +308,22 @@ print(f"Average clustering coefficient: {avg_clustering_coeff}")
 
 end_time = time.time()
 print("Total time: {:.2f} seconds".format((end_time - start_time)))
+```
+
+#### Average shortest path length (NOTE: veeeery long)
+
+```{python}
+# sanity check
+if nx.is_connected(graph):
+    start_time = time.time()
+
+    avg_shortest_path = nx.average_shortest_path_length(graph)
+    print(avg_shortest_path)
+
+    end_time = time.time()
+    print("Total time: {:.2f} seconds".format((end_time - start_time)))
+else:
+    print("Graph is not connected.")
 ```
 
 ```{python}
