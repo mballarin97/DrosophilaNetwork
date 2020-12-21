@@ -29,6 +29,11 @@ import time
 import numpy as np
 ```
 
+```{python}
+# False -> avoid running time-consuming cells
+PATIENCE = False
+```
+
 ## Importing datasets
 - neurons_dataframe contains neuron number (body_id). The body_id is an [unique identifier](https://en.wikipedia.org/wiki/Unique_identifier#:~:text=A%20unique%20identifier%20(UID)%20is,with%20an%20atomic%20data%20type.). It also contains the neuron cell type (type) and the neuron unique name (instance).
 - synapses_dataframe contains the sparse connectivity matrix of the network;
@@ -80,13 +85,12 @@ plt.matshow(nx.adjacency_matrix(graph).todense(), fignum=matfig.number, cmap=plt
 #### Non-randomness coefficient
 
 ```{python}
-"""
-start_time = time.time()
-loc, glob = nx.non_randomness(graph)
-print(glob)
-end_time = time.time()
-print("Total time: {:.2f} seconds".format((end_time - start_time)))
-"""
+if PATIENCE:
+    start_time = time.time()
+    loc, glob = nx.non_randomness(graph)
+    print(glob)
+    end_time = time.time()
+    print("Total time: {:.2f} seconds".format((end_time - start_time)))
 ```
 
 #### Degree distribution and properties
@@ -161,35 +165,37 @@ SM = nx.convert_matrix.to_scipy_sparse_matrix(graph)
 start_time = time.time()
 locality = np.zeros(len(neurons_dataframe))
 locality[0] = 1        
-pr=pagerank_power(SM, p=0.85, personalize=locality, tol=1e-6)
+page=pagerank_power(SM, p=0.85, personalize=locality, tol=1e-6)
 end_time = time.time()
 print("Total time: {:.2f} seconds".format((end_time - start_time)))
 ```
 
 ```{python}
 # compute pagerank ranking
-start_time = time.time()
+if PATIENCE:
+    start_time = time.time()
 
-page = nx.algorithms.link_analysis.pagerank(graph)
+    page = nx.algorithms.link_analysis.pagerank(graph)
 
-end_time = time.time()
-print("Total time: {:.2f} minutes".format((end_time - start_time)/60))
+    end_time = time.time()
+    print("Total time: {:.2f} minutes".format((end_time - start_time)/60))
+        
+    plt.hist(page.values(), bins=100)
+    plt.show()
 ```
 
 ```{python}
 # compute pagerank ranking
-start_time = time.time()
+if PATIENCE:
+    start_time = time.time()
+
+    page = nx.algorithms.link_analysis.pagerank_scipy(graph)
+
+    end_time = time.time()
+    print("Total time: {:.2f} minutes".format((end_time - start_time)/60))
     
-page = nx.algorithms.link_analysis.pagerank_scipy(graph)
-
-end_time = time.time()
-print("Total time: {:.2f} minutes".format((end_time - start_time)/60))
-```
-
-```{python}
-plt.hist(page.values(), bins=100)
-  
-plt.show()
+    plt.hist(page.values(), bins=100)
+    plt.show()
 ```
 
 ## Approximate visualization of main brain regions
@@ -301,29 +307,31 @@ plt.show()
 Time saver: avg_clustering_coeff = 0.31370364316752
 
 ```{python}
-start_time = time.time()
+if PATIENCE:
+    start_time = time.time()
 
-avg_clustering_coeff = nx.average_clustering(graph)
-print(f"Average clustering coefficient: {avg_clustering_coeff}")
+    avg_clustering_coeff = nx.average_clustering(graph)
+    print(f"Average clustering coefficient: {avg_clustering_coeff}")
 
-end_time = time.time()
-print("Total time: {:.2f} seconds".format((end_time - start_time)))
+    end_time = time.time()
+    print("Total time: {:.2f} seconds".format((end_time - start_time)))
 ```
 
 #### Average shortest path length (NOTE: veeeery long)
 
 ```{python}
-# sanity check
-if nx.is_connected(graph):
-    start_time = time.time()
+if PATIENCE:
+    # sanity check
+    if nx.is_connected(graph):
+        start_time = time.time()
 
-    avg_shortest_path = nx.average_shortest_path_length(graph)
-    print(avg_shortest_path)
+        avg_shortest_path = nx.average_shortest_path_length(graph)
+        print(avg_shortest_path)
 
-    end_time = time.time()
-    print("Total time: {:.2f} seconds".format((end_time - start_time)))
-else:
-    print("Graph is not connected.")
+        end_time = time.time()
+        print("Total time: {:.2f} seconds".format((end_time - start_time)))
+    else:
+        print("Graph is not connected.")
 ```
 
 ```{python}
