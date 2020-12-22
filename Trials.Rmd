@@ -55,6 +55,8 @@ len( neurons_dataframe['type'].unique() )
 # add link as 2-tuple between neurons bodyId
 synapses_dataframe['synaps'] = list(zip(synapses_dataframe.bodyId_pre, synapses_dataframe.bodyId_post))
 synapses_dataframe.head()
+print(synapses_dataframe['synaps'].nunique() )
+print(len(synapses_dataframe['synaps']))
 ```
 
 #### Hemibrain regions of interest
@@ -64,7 +66,12 @@ roi_dataframe.head()
 ```
 
 ```{python}
-roi_dataframe['roi'].unique() 
+print(roi_dataframe['roi'].unique() )
+print(len(roi_dataframe))
+```
+
+```{python}
+(4218945 - 3521163)/3521163
 ```
 
 ## Graph
@@ -254,12 +261,14 @@ ig.plot(high_lvl_brain_ig, "high_lvl_brain.pdf", **visual_style, layout="kk")
 1. ✔️ Check degree distribution is power law
 1. ◻️ netorkx documentation (algorithms in particular);
 1. ◻️ Local connectivity measure;
-1. ◻️ Define coarse graining procedure;
-1. ◻️ Community detection;
-1. ◻️ Save local copy of results;
-1. ◻️ Betweenness, centrality, small world characteristics;
+1. ◻️ Colour adjacency matrix based on connection supergroup **FRANK**;
+1. ◻️ Redefine ROI by taking connection with highest weight only **FRANK**;
+1. ◻️ Define coarse graining procedure **BALLA**;
+1. ◻️ Curare il report up to now;
+1. ◻️ Better define coarse graining metrics;
+1. ◻️ Community detection (naive and after coarse graining);
+1. ◻️ Betweenness (especially for multiple ROI synapses), centrality, small world characteristics;
 1. ✔️Distance from random network;
-1. ◻️ Plot every measure
 1. ◻️ robustness to cuts. In particular it may be interesting to attack outer regions of the brain, the more easily damaged. The  **common connectome constraint paper** already say something about it;
 
 
