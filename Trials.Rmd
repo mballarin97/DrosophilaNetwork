@@ -22,9 +22,10 @@ from fast_pagerank import pagerank_power
 import pandas as pd
 # Visualization
 import matplotlib.pyplot as plt
-import igraph as ig
-import cairocffi as cairo
+#import igraph as ig
+#import cairocffi as cairo
 # Miscellaneous
+from tqdm import tqdm
 import time
 import numpy as np
 ```
@@ -49,14 +50,30 @@ roi_dataframe = pd.read_csv('exported-traced-adjacencies/traced-roi-connections.
 
 ```{python}
 len( neurons_dataframe['type'].unique() ) 
+neurons_dataframe.head()
 ```
 
 ```{python}
 # add link as 2-tuple between neurons bodyId
 synapses_dataframe['synaps'] = list(zip(synapses_dataframe.bodyId_pre, synapses_dataframe.bodyId_post))
-synapses_dataframe.head()
+print(synapses_dataframe.head())
 print(synapses_dataframe['synaps'].nunique() )
 print(len(synapses_dataframe['synaps']))
+```
+
+```{python}
+# Visualization of 
+#bins = np.logspace(0, 4, 100)
+bins = 100
+y, x = np.histogram(synapses_dataframe['weight'], bins=bins)
+x = (x[1:]+x[:-1])/2
+plt.loglog()
+plt.plot(x, y, 'ro')
+plt.xlabel('Log weight log(w)')
+plt.ylabel('Log Frequency ')
+plt.title('Weight distribution')
+plt.grid()
+plt.show()
 ```
 
 #### Hemibrain regions of interest
@@ -161,6 +178,211 @@ To apply our coarse graining procedure we aggregate the nodes with their nearest
 - **local page rank**. The local page rank gives the proximity of the nodes with respect to the chosen node. So the second highest node is gonna be merged with the one where the lpr is computed. Networkx creates each time the sparse matrix, which is a time consuming task. We need to compute the page rank several times, and so chosen to use another representation;
 - **link strength**. We merge the more connected or the less connected (with the idea that they are not influencing the graph properties)
 
+```{python}
+def delete_from_csr(mat, row_indices=[], col_indices=[]):
+    """
+    Remove the rows (denoted by ``row_indices``) and columns (denoted by ``col_indices``) from the CSR sparse matrix ``mat``.
+    WARNING: Indices of altered axes are reset in the returned matrix
+    """
+    if not isinstance(mat, csr_matrix):
+        raise ValueError("works only for CSR format -- use .tocsr() first")
+
+    rows = []
+    cols = []
+    if row_indices:
+        rows = list(row_indices)
+    if col_indices:
+        cols = list(col_indices)
+
+    if len(rows) > 0 and len(cols) > 0:
+        row_mask = np.ones(mat.shape[0], dtype=bool)
+        row_mask[rows] = False
+        col_mask = np.ones(mat.shape[1], dtype=bool)
+        col_mask[cols] = False
+        return mat[row_mask][:,col_mask]
+    elif len(rows) > 0:
+        mask = np.ones(mat.shape[0], dtype=bool)
+        mask[rows] = False
+        return mat[mask]
+    elif len(cols) > 0:
+        mask = np.ones(mat.shape[1], dtype=bool)
+        mask[cols] = False
+        return mat[:,mask]
+    else:
+        return mat
+
+class CoarseGrainerSM:
+    def __init__(self, nodes, connectivity, threshold=0):
+        """
+            Parameters:
+                nodes: np array size (N,) with node name where N is number of nodes
+                connectivity: sparse csr matrix
+        """
+        self.nodes = nodes
+        self.connectivity = connectivity
+        self.initial_N = self.nodes.size
+        self.initial_M = self.connectivity.shape[0]
+        self.threshold = threshold
+        print(f'Initialized with connectivity matrix of density: {self.initial_M/self.initial_N**2}')
+        
+    def set_metrics(self, metric_vect, node_id, minmax):
+        """ 
+            Define the metric vector and the node_id to be used at the next iteration
+            Parameters:
+                node_id (string): Name of the selected node
+                metric_vect (np array(1, B)): metric of the network wrt @node_id
+                minmax(int): 1 if looking for max of the metric, -1 if looking for min
+        """
+        self.sel_node_id = node_id
+        self.metric = metric_vect
+        self.minmax = minmax
+        
+    def fusion(self):
+        nearest_node = np.argmax( self.minmax*self.metric )
+        nearest_node_id = self.nodes[nearest_node]
+        # Eliminate the nearest node from the node list
+        self.nodes = np.delete(self.nodes, nearest_node)
+        
+        # Join connection of the deleted node to the other
+        self.connectivity.getrow(self.sel_node) += self.connectivity.getrow(nearest_node)
+        # Avoid self loops
+        self.connectivity.getrow(self.sel_node)[self.sel_node] = 0
+        # Delete old node
+        self.connectivity = delete_from_csr(self.connectivity, nearest_node, nearest_node)
+    
+    def _get_weight(self, node_id):
+        temp1 = self.connectivity[:,2][ self.connectivity[:,0]==node_id ].flatten()
+        temp2 = self.connectivity[:,2][ self.connectivity[:,1]==node_id ].flatten()
+        return np.hstack( (temp1, temp2))
+    
+    def _test(self, Niter):
+        for i in tqdm(range(Niter)):
+            node_id = np.random.choice(self.nodes)
+            metric_vect = self._get_weight(node_id)
+            self.set_metrics(metric_vect, node_id, +1)
+            self.fusion()
+        
+```
+
+```{python}
+class CoarseGrainer:
+    def __init__(self, nodes, connectivity, threshold=0):
+        """
+            Parameters:
+                nodes: np array size (N,) with node name where N is number of nodes
+                connectivity: np array size (M, 3) where M is the number of links. We have M<<N**2
+        """
+        self.nodes = nodes
+        self.connectivity = connectivity
+        self.N = self.nodes.size
+        self.M = self.connectivity.shape[0]
+        self.threshold = threshold
+        print(f'Initialized with connectivity matrix of density: {self.M/self.N**2}')
+        
+    def set_metrics(self, metric_vect, node_id, minmax):
+        """ 
+            Define the metric vector and the node_id to be used at the next iteration
+            Parameters:
+                node_id (string): Name of the selected node
+                metric_vect (np array(1, B)): metric of the network wrt @node_id
+                minmax(int): 1 if looking for max of the metric, -1 if looking for min
+        """
+        self.sel_node = node_id
+        self.metric = metric_vect
+        self.minmax = minmax
+        
+    def fusion(self):
+        nearest_node = np.argmax( self.minmax*self.metric )
+        nearest_node_id = self.nodes[nearest_node]
+        # Eliminate the nearest node from the node list
+        self.nodes = np.delete(self.nodes, nearest_node)
+        
+        dM = int( self.M*(2/self.N-1/self.N**2) )
+        
+        connections = np.hstack( (np.where(self.connectivity[:,0]==nearest_node_id),
+                                  np.where(self.connectivity[:,1]==nearest_node_id) ) )
+        connections = np.unique(connections)
+        connections_selected = np.random.choice(connections, size=max(1, connections.size-dM), replace=False)
+        connestions_not_selected = connections[connections != connections_selected]
+        # Join connection of the deleted node to the other
+        self.connectivity[:,0][ connections_selected] = self.sel_node
+        self.connectivity[:,1][ connections_selected] = self.sel_node
+        
+        # Eliminate self loops and non-selected connections
+        self.connectivity = self.connectivity[ self.connectivity[:,0] != self.connectivity[:,1] ]
+        self.connectivity = np.delete(self.connectivity, np.minimum(connestions_not_selected, self.M), axis=0)
+        
+        self.N -= 1 
+        self.M -= dM
+        
+    def _get_weight(self, node_id):
+        temp1 = self.connectivity[:,2][ self.connectivity[:,0]==node_id ].flatten()
+        temp2 = self.connectivity[:,2][ self.connectivity[:,1]==node_id ].flatten()
+        return np.hstack( (temp1, temp2))
+    
+    def _test(self, Niter):
+        for i in tqdm(range(Niter)):
+            node_id = np.random.choice(self.nodes)
+            metric_vect = self._get_weight(node_id)
+            self.set_metrics(metric_vect, node_id, +1)
+            self.fusion()
+        print(f'Finalized with connectivity matrix of density: {self.M/self.N**2}')
+```
+
+```{python}
+nodes = np.array(neurons_dataframe['bodyId'])
+M = len(synapses_dataframe['bodyId_pre'])
+connectivity = np.hstack(  (np.array(synapses_dataframe['bodyId_pre']).reshape(M,1), 
+                            np.array(synapses_dataframe['bodyId_post']).reshape(M,1), 
+                           np.array( synapses_dataframe['weight']).reshape(M,1))
+    )
+```
+
+```{python}
+coarse = CoarseGrainer(nodes, connectivity)
+```
+
+```{python}
+start_time = time.time()
+coarse._test(10000)
+end_time = time.time()
+print("Total time: {:.2f} seconds".format((end_time - start_time)))
+```
+
+```{python}
+coarse.connectivity.shape[0]/coarse.nodes.size**2
+```
+
+```{python}
+synapses= list(zip(coarse.connectivity[:,0], coarse.connectivity[:,1]))
+graph_coarsed = nx.Graph()
+graph_coarsed.add_nodes_from(coarse.nodes)
+graph_coarsed.add_edges_from(synapses)
+```
+
+```{python}
+degree = np.array([ d for n, d in graph_coarsed.degree()])
+print(np.mean(degree))
+#bins = np.logspace(0, 4, 100)
+bins = 100
+y, x = np.histogram(degree, bins=bins)
+x = (x[1:]+x[:-1])/2
+
+# plot degree bins
+plt.loglog()
+plt.plot(x, y, 'ro')
+plt.xlabel('Log Degree log(k)')
+plt.ylabel('Log Frequency ')
+plt.title('Degree distribution')
+plt.grid()
+plt.show()
+```
+
+```{python}
+matfig = plt.figure(figsize=(20,20))
+adj = nx.adjacency_matrix(graph_coarsed).todense()
+plt.matshow(adj, fignum=matfig.number, cmap=plt.get_cmap("binary"))
+```
 
 #### PageRank measure
 
