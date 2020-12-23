@@ -184,7 +184,6 @@ print(f"Edge attributes: {graph.edges[(200326126, 264083994)]}")
 
 ```{python}
 dense=nx.adjacency_matrix(graph).todense()
-print(dense[0:10])
 ```
 
 ```{python}
@@ -365,7 +364,7 @@ ig.plot(high_lvl_brain_ig, "high_lvl_brain.pdf", **visual_style, layout="kk")
 1. ◻️ netorkx documentation (algorithms in particular);
 1. ◻️ Local connectivity measure;
 1. ◻️ Colour adjacency matrix based on connection supergroup **FRANK**;
-1. ◻️ Redefine ROI by taking connection with highest weight only **FRANK**;
+1. ✔️ Redefine ROI by taking connection with highest weight only **FRANK**;
 1. ◻️ Define coarse graining procedure **BALLA**;
 1. ◻️ Curare il report up to now;
 1. ◻️ Better define coarse graining metrics;
@@ -376,7 +375,7 @@ ig.plot(high_lvl_brain_ig, "high_lvl_brain.pdf", **visual_style, layout="kk")
 
 
 ###### Problems
-In point (3), we have that the same synapse (same link between two neurons, as we've defined it here) may belong to more than one region. We could add only the one with the highest weight, but often is not possible. Random?
+~In point (3), we have that the same synapse (same link between two neurons, as we've defined it here) may belong to more than one region. We could add only the one with the highest weight, but often is not possible. Random?~ Fixed by taking the highest-weight only connection.
 
 
 ## Average measures
