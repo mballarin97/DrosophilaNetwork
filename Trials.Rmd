@@ -155,20 +155,29 @@ roi_dataframe.to_csv(os.path.join("exported-traced-adjacencies", "treated_roi.cs
 ```{python}
 # neuron type is attribute of the neuron in the graph, we directly extract it from the dataframe
 nodes = neurons_dataframe[['bodyId', 'type']]
-attr_dict = nodes.set_index('bodyId')['type'].to_dict()
+nodes_attr_dict = nodes.set_index('bodyId')['type'].to_dict()
+
+links = roi_dataframe[['synaps', 'roi', 'superset']]
+links_attr_dict_1 = links.set_index('synaps')['roi'].to_dict()
+links_attr_dict_2 = links.set_index('synaps')['superset'].to_dict()
 ```
 
 ```{python}
 graph = nx.Graph()
 graph.add_nodes_from(neurons_dataframe['bodyId'])
-nx.set_node_attributes(graph, attr_dict, 'type')
-graph.add_edges_from(synapses_dataframe['synaps'])
+nx.set_node_attributes(graph, nodes_attr_dict, 'type')
+graph.add_edges_from(roi_dataframe['synaps'])
+nx.set_edge_attributes(graph, links_attr_dict_1, 'roi')
+nx.set_edge_attributes(graph, links_attr_dict_2, 'superset')
 ```
 
 ```{python}
 # sanity check
-print(list(graph.nodes)[0])
-print(graph.nodes[200326126])
+print(f"Node: {list(graph.nodes)[0]}")
+print(f"Node attributes: {graph.nodes[200326126]}")
+
+print(f"Edge: {list(graph.edges)[0]}")
+print(f"Edge attributes: {graph.edges[(200326126, 264083994)]}")
 ```
 
 #### Adjacency matrix
