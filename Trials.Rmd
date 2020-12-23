@@ -75,7 +75,7 @@ print(len(roi_dataframe))
 
 ```{python}
 # key is superset, value is list of roi
-map_roi_to_supersets = {
+roi_supersets = {
     'AL': ['AL(L)', 'AL(R)'],
     'CX': ['FB', 'EB', 'PB', 'NO', 'AB(L)', 'AB(R)'],
     'GNG': ['GNG'],
@@ -89,6 +89,17 @@ map_roi_to_supersets = {
     'VLNP': ['AOTU(R)','AVLP(R)','PVLP(R)','PLP(R)','WED(R)'],
     'VMNP': ['VES(L)', 'VES(R)','EPA(L)', 'EPA(R)','GOR(L)', 'GOR(R)','SPS(L)', 'SPS(R)','IPS(R)'],
 }
+
+def map_roi_to_superset(links):
+    def find_attr(roi):
+        for key, value in roi_supersets.items():
+            if roi in value:
+                return key
+    res = list(map(find_attr, links))
+    return res
+
+roi_dataframe['superset'] = map_roi_to_superset(roi_dataframe['roi'].tolist())
+roi_dataframe.head()
 ```
 
 ```{python}
@@ -96,7 +107,7 @@ map_roi_to_supersets = {
 roi = list(sorted(roi_dataframe['roi'].unique()))
 removed = []
 for elem in roi:
-    for key, value in map_roi_to_supersets.items():
+    for key, value in roi_supersets.items():
         if elem in value and elem not in removed:
             removed.append(elem)
 remains = [x for x in roi if x not in removed]
@@ -125,6 +136,11 @@ print(graph.nodes[200326126])
 ```
 
 #### Adjacency matrix
+
+```{python}
+dense=nx.adjacency_matrix(graph).todense()
+print(dense[0:10])
+```
 
 ```{python}
 matfig = plt.figure(figsize=(20,20))
