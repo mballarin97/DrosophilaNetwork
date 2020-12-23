@@ -65,13 +65,44 @@ print(len(synapses_dataframe['synaps']))
 roi_dataframe.head()
 ```
 
+1. ◻️ Colour adjacency matrix based on connection supergroup **FRANK**;
+1. ◻️ Redefine ROI by taking connection with highest weight only **FRANK**;
+
+
 ```{python}
-print(roi_dataframe['roi'].unique() )
+print(sorted(roi_dataframe['roi'].unique() ))
+print((roi_dataframe['roi'].nunique()))
 print(len(roi_dataframe))
 ```
 
 ```{python}
-(4218945 - 3521163)/3521163
+# key is superset, value is list of roi
+map_roi_to_supersets = {
+    'AL': ['AL(L)', 'AL(R)'],
+    'CX': ['FB', 'EB', 'PB', 'NO', 'AB(L)', 'AB(R)'],
+    'GNG': ['GNG'],
+    'INP': ['CRE(L)', 'CRE(R)', 'SCL(L)', 'SCL(R)', 'IB', 'ICL(L)', 'ICL(R)', 'ATL(L)', 'ATL(R)', 'IB'],
+    'LH': ['LH(R)'],
+    'LX': ['BU(L)', 'BU(R)','LAL(L)', 'LAL(R)'],
+    'MB': ['CA(R)','PED(R)',"a'L(L)", "a'L(R)", 'aL(L)', 'aL(R)', "b'L(L)", "b'L(R)", 'bL(L)', 'bL(R)', 'gL(L)', 'gL(R)'],
+    'OL': ['AME(R)','ME(R)','LO(R)', 'LOP(R)'],
+    'PENP': ['SAD','CAN(R)','FLA(R)'],
+    'SNP': ['SIP(L)', 'SIP(R)', 'SLP(R)', 'SMP(L)', 'SMP(R)', 'SPS(L)', 'SPS(R)'],
+    'VLNP': ['AOTU(R)','AVLP(R)','PVLP(R)','PLP(R)','WED(R)'],
+    'VMNP': ['VES(L)', 'VES(R)','EPA(L)', 'EPA(R)','GOR(L)', 'GOR(R)','SPS(L)', 'SPS(R)','IPS(R)'],
+}
+```
+
+```{python}
+# sanity check
+roi = list(sorted(roi_dataframe['roi'].unique()))
+removed = []
+for elem in roi:
+    for key, value in map_roi_to_supersets.items():
+        if elem in value and elem not in removed:
+            removed.append(elem)
+remains = [x for x in roi if x not in removed]
+print(f"Non-included sections: {remains}")
 ```
 
 ## Graph
@@ -224,7 +255,7 @@ high_lvl_brain_ig = ig.Graph.from_networkx(high_lvl_brain)
 ```{python}
 colors = ig.drawing.colors.known_colors
 colors = list(colors.keys())
-print(colors)
+#print(colors)
 ```
 
 ```{python}
