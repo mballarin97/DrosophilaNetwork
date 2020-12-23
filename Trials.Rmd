@@ -56,22 +56,20 @@ neurons_dataframe.head()
 # add link as 2-tuple between neurons bodyId
 synapses_dataframe['synaps'] = list(zip(synapses_dataframe.bodyId_pre, synapses_dataframe.bodyId_post))
 print(synapses_dataframe.head())
-print(synapses_dataframe['synaps'].nunique())
-print(len(synapses_dataframe))
-print(synapses_dataframe[synapses_dataframe['synaps'] == (200326126, 295816140)])
+print(f"Number of unique synapses: {synapses_dataframe['synaps'].nunique()}")
+print(f"Length of synapses dataset: {len(synapses_dataframe)}")
+# NOTE: the weight of the synapses dataset is the sum of all the weights from the ROI
 ```
 
 #### Hemibrain regions of interest
 
 ```{python}
 roi_dataframe['synaps'] = list(zip(roi_dataframe.bodyId_pre, roi_dataframe.bodyId_post))
-cols = list(roi_dataframe.columns)
-print(cols)
+cols = list(roi_dataframe.columns)  # to use later
 print(roi_dataframe.head())
-print(roi_dataframe['synaps'].nunique())
-print(len(roi_dataframe))
-print(4218945 - 3521163)
-print(roi_dataframe[roi_dataframe['synaps'] == (200326126, 295816140)])
+print(f"Number of unique synapses: {roi_dataframe['synaps'].nunique()}")
+print(f"Length of ROI dataset: {len(roi_dataframe)}")
+print(f"Difference: {len(roi_dataframe) - roi_dataframe['synaps'].nunique()}")
 ```
 
 ```{python}
@@ -96,8 +94,8 @@ print("Total time: {:.2f} seconds".format((end_time - start_time)))
 ```
 
 ```{python}
-roi_dataframe = pd.DataFrame(roi, columns=cols)
-roi_dataframe.head()
+roi_dataframe = pd.DataFrame(roi, columns=list(roi_dataframe.columns))
+print(roi_dataframe.head())
 
 # sanity check
 assert roi_dataframe['synaps'].nunique() == len(roi_dataframe)
@@ -106,12 +104,6 @@ assert roi_dataframe['synaps'].nunique() == len(roi_dataframe)
 1. ◻️ Colour adjacency matrix based on connection supergroup **FRANK**;
 1. ◻️ Redefine ROI by taking connection with highest weight only **FRANK**;
 
-
-```{python}
-print(sorted(roi_dataframe['roi'].unique() ))
-print((roi_dataframe['roi'].nunique()))
-print(len(roi_dataframe))
-```
 
 ```{python}
 # key is superset, value is list of roi
@@ -144,7 +136,7 @@ roi_dataframe.head()
 
 ```{python}
 # sanity check
-roi = list(sorted(roi_dataframe['roi'].unique()))
+roi = list(roi_dataframe['roi'].unique())
 removed = []
 for elem in roi:
     for key, value in roi_supersets.items():
