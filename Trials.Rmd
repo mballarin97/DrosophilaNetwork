@@ -48,15 +48,19 @@ roi_dataframe = pd.read_csv('exported-traced-adjacencies/traced-roi-connections.
 ```
 
 ```{python}
-len( neurons_dataframe['type'].unique() ) 
+neurons_dataframe.head()
+```
+
+```{python}
+nodes = neurons_dataframe[['bodyId', 'type']]
+attr_dict = nodes.set_index('bodyId')['type'].to_dict()
+print(attr_dict)
 ```
 
 ```{python}
 # add link as 2-tuple between neurons bodyId
 synapses_dataframe['synaps'] = list(zip(synapses_dataframe.bodyId_pre, synapses_dataframe.bodyId_post))
 synapses_dataframe.head()
-print(synapses_dataframe['synaps'].nunique() )
-print(len(synapses_dataframe['synaps']))
 ```
 
 #### Hemibrain regions of interest
