@@ -21,6 +21,7 @@ from fast_pagerank import pagerank_power
 # Data handling
 import pandas as pd
 # Visualization
+import matplotlib
 import matplotlib.pyplot as plt
 import igraph as ig
 import cairocffi as cairo
@@ -184,6 +185,18 @@ print(f"Edge attributes: {graph.edges[(200326126, 264083994)]}")
 
 ```{python}
 dense=nx.adjacency_matrix(graph).todense()
+```
+
+```{python}
+supersets = len(roi_supersets)
+print(supersets)
+colors = ['#7f52ab', '#67e682', '#a3e443', '#f3747e', '#8095cc', '#452664', 
+          '#f2d7aa', '#b9f6d5', '#dcfe17', '#2727e4', '#38f5a5', '#c44048']
+
+# scale = [0, 59, 68, 97, 175, 188, 199, 209, 215, 221, 226, 250]
+
+cmap=matplotlib.colors.ListedColormap(colors)
+# norm=matplotlib.colors.BoundaryNorm(scale, len(colors))
 ```
 
 ```{python}
