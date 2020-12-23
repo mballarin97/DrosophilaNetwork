@@ -158,18 +158,22 @@ roi_dataframe.to_csv(os.path.join("exported-traced-adjacencies", "treated_roi.cs
 nodes = neurons_dataframe[['bodyId', 'type']]
 nodes_attr_dict = nodes.set_index('bodyId')['type'].to_dict()
 
-links = roi_dataframe[['synaps', 'roi', 'superset']]
+links = roi_dataframe[['synaps', 'roi', 'superset', 'weight']]
 links_attr_dict_1 = links.set_index('synaps')['roi'].to_dict()
 links_attr_dict_2 = links.set_index('synaps')['superset'].to_dict()
+links_attr_dict_3 = links.set_index('synaps')['weight'].to_dict()
 ```
 
 ```{python}
 graph = nx.Graph()
+
 graph.add_nodes_from(neurons_dataframe['bodyId'])
 nx.set_node_attributes(graph, nodes_attr_dict, 'type')
+
 graph.add_edges_from(roi_dataframe['synaps'])
 nx.set_edge_attributes(graph, links_attr_dict_1, 'roi')
 nx.set_edge_attributes(graph, links_attr_dict_2, 'superset')
+# nx.set_edge_attributes(graph, links_attr_dict_3, 'weight')
 ```
 
 ```{python}
@@ -185,11 +189,12 @@ print(f"Edge attributes: {graph.edges[(200326126, 264083994)]}")
 
 ```{python}
 dense=nx.adjacency_matrix(graph).todense()
+print(dense)
+res = np.where(dense > 2)
+print(dense[res])
 ```
 
 ```{python}
-supersets = len(roi_supersets)
-print(supersets)
 colors = ['#7f52ab', '#67e682', '#a3e443', '#f3747e', '#8095cc', '#452664', 
           '#f2d7aa', '#b9f6d5', '#dcfe17', '#2727e4', '#38f5a5', '#c44048']
 
@@ -201,7 +206,8 @@ cmap=matplotlib.colors.ListedColormap(colors)
 
 ```{python}
 matfig = plt.figure(figsize=(20,20))
-plt.matshow(nx.adjacency_matrix(graph).todense(), fignum=matfig.number, cmap=plt.get_cmap("binary"))
+#plt.matshow(nx.adjacency_matrix(graph).todense(), fignum=matfig.number, cmap=plt.get_cmap("binary"))
+plt.matshow(nx.adjacency_matrix(graph).todense(), fignum=matfig.number)
 ```
 
 #### Non-randomness coefficient
