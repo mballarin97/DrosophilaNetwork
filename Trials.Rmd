@@ -52,12 +52,6 @@ neurons_dataframe.head()
 ```
 
 ```{python}
-nodes = neurons_dataframe[['bodyId', 'type']]
-attr_dict = nodes.set_index('bodyId')['type'].to_dict()
-print(attr_dict)
-```
-
-```{python}
 # add link as 2-tuple between neurons bodyId
 synapses_dataframe['synaps'] = list(zip(synapses_dataframe.bodyId_pre, synapses_dataframe.bodyId_post))
 synapses_dataframe.head()
@@ -112,9 +106,22 @@ print(f"Non-included sections: {remains}")
 ## Graph
 
 ```{python}
+# neuron type is attribute of the neuron in the graph, we directly extract it from the dataframe
+nodes = neurons_dataframe[['bodyId', 'type']]
+attr_dict = nodes.set_index('bodyId')['type'].to_dict()
+```
+
+```{python}
 graph = nx.Graph()
 graph.add_nodes_from(neurons_dataframe['bodyId'])
+nx.set_node_attributes(graph, attr_dict, 'type')
 graph.add_edges_from(synapses_dataframe['synaps'])
+```
+
+```{python}
+# sanity check
+print(list(graph.nodes)[0])
+print(graph.nodes[200326126])
 ```
 
 #### Adjacency matrix
