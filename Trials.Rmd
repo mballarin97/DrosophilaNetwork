@@ -26,6 +26,7 @@ import igraph as ig
 import cairocffi as cairo
 # Miscellaneous
 import time
+import os
 import numpy as np
 ```
 
@@ -54,13 +55,48 @@ neurons_dataframe.head()
 ```{python}
 # add link as 2-tuple between neurons bodyId
 synapses_dataframe['synaps'] = list(zip(synapses_dataframe.bodyId_pre, synapses_dataframe.bodyId_post))
-synapses_dataframe.head()
+print(synapses_dataframe.head())
+print(synapses_dataframe['synaps'].nunique())
+print(len(synapses_dataframe))
+print(synapses_dataframe[synapses_dataframe['synaps'] == (200326126, 295816140)])
 ```
 
 #### Hemibrain regions of interest
 
 ```{python}
-roi_dataframe.head()
+roi_dataframe['synaps'] = list(zip(roi_dataframe.bodyId_pre, roi_dataframe.bodyId_post))
+print(roi_dataframe.head())
+print(roi_dataframe['synaps'].nunique())
+print(len(roi_dataframe))
+print(4218945 - 3521163)
+print(roi_dataframe[roi_dataframe['synaps'] == (200326126, 295816140)])
+```
+
+```{python}
+roi = roi_dataframe.to_numpy()
+indexes_to_delete = []
+out_index = 0
+hhh = 0
+
+start_time = time.time()
+
+while out_index < len(roi_dataframe):
+    j = 1
+    while(out_index+j < len(roi_dataframe) and roi[out_index][4] == roi[out_index + j][4]):
+        indexes_to_delete.append(out_index+j)
+        #print(indexes_to_delete)
+        j = j + 1
+    #print(f"1: {out_index}")
+    out_index = out_index + j
+    #print(f" 2: {out_index}")
+
+print(len(indexes_to_delete))
+roi = np.delete(roi, obj=indexes_to_delete, axis=0)
+print(roi[0:20])
+
+end_time = time.time()
+print("Total time: {:.2f} minutes".format((end_time - start_time)/60))
+
 ```
 
 1. ◻️ Colour adjacency matrix based on connection supergroup **FRANK**;
@@ -112,6 +148,10 @@ for elem in roi:
             removed.append(elem)
 remains = [x for x in roi if x not in removed]
 print(f"Non-included sections: {remains}")
+```
+
+```{python}
+roi_dataframe.to_csv(os.path.join("exported-traced-adjacencies", "treated_roi.csv"))
 ```
 
 ## Graph
