@@ -510,6 +510,30 @@ print("Total time: {:.2f} seconds".format((end_time - start_time)))
 ```
 
 ```{python}
+start_time = time.time()
+local_pagerank_results = {}
+for i in range(len(neurons_dataframe)):
+    locality = np.zeros(len(neurons_dataframe))
+    locality[i] = 1
+    page = pagerank_power(SM, p=0.85, personalize=locality, tol=1e-6)
+    local_pagerank_results[i] = page
+end_time = time.time()
+print("Total time: {:.2f} seconds".format((end_time - start_time)))
+```
+
+```{python}
+import pickle
+f = open("pagerank_computed.pkl","wb")
+pickle.dump(local_pagerank_results,f)
+f.close()
+```
+
+```{python}
+print(page)
+print(len(page))
+```
+
+```{python}
 # compute pagerank ranking
 if PATIENCE:
     start_time = time.time()
