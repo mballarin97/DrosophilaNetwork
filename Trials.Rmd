@@ -102,10 +102,6 @@ print(roi_dataframe.head())
 assert roi_dataframe['synaps'].nunique() == len(roi_dataframe)
 ```
 
-1. ◻️ Colour adjacency matrix based on connection supergroup **FRANK**;
-1. ◻️ Redefine ROI by taking connection with highest weight only **FRANK**;
-
-
 ```{python}
 # key is superset, value is list of roi
 roi_supersets = {
@@ -190,13 +186,6 @@ print(f"Edge attributes: {graph.edges[(200326126, 264083994)]}")
 #### Adjacency matrix
 
 ```{python}
-dense=nx.adjacency_matrix(graph).todense()
-print(dense)
-res = np.where(dense > 2)
-print(dense[res])
-```
-
-```{python}
 # key is superset, value is list of roi
 roi_supersets = {
     'AL': 1,
@@ -244,23 +233,32 @@ nx.set_edge_attributes(graph, links_attr_dict_1, 'weight')
 ```
 
 ```{python}
-colors = ['#000000', '#67e682', '#a3e443', '#f3747e', '#8095cc', '#452664', 
-          '#f2d7aa', '#b9f6d5', '#dcfe17', '#2727e4', '#38f5a5', '#c44048']
+colors = ['#000000', '#67e682', '#cccccc', '#f3747e', '#8095cc', '#452664', 
+          '#f2d7aa', '#b9f6d5', '#dcfe17', '#2727e4', '#38f5a5', '#c44048',
+          '#CC5B01', '#0793c6', '#ffffff']
 
-# scale = [0, 59, 68, 97, 175, 188, 199, 209, 215, 221, 226, 250]
+scale = list(range(0,15))
 
 cmap=matplotlib.colors.ListedColormap(colors)
-# norm=matplotlib.colors.BoundaryNorm(scale, len(colors))
+norm=matplotlib.colors.BoundaryNorm(scale, len(colors))
+```
+
+```{python}
+print(list(roi_supersets.keys()))
 ```
 
 ```{python}
 data = nx.adjacency_matrix(graph).astype(np.int8).todense()
-
 f = plt.figure(figsize=(15,15))
 ax = plt.axes([0, 0.05, 0.9, 0.9 ]) #left, bottom, width, height
-im = ax.matshow(data, cmap=cmap)
+im = ax.matshow(data, cmap=cmap, norm=norm)
 cax = plt.axes([0.95, 0.05, 0.05,0.9 ])
-plt.colorbar(mappable=im, cax=cax)
+cbar = plt.colorbar(mappable=im, cax=cax, ticks=np.linspace(0, 14, 14, endpoint=False) + 1/2, spacing='uniform', label='Superset connection type')
+# cbar.ax.set_yticklabels(['< -1', '0', '> 1'])  # vertically oriented colorbar
+ticks = [str(i) for i in range(1,14)]
+cbar.ax.set_yticklabels(['No link'] + list(roi_supersets.keys()))  # vertically oriented colorbar
+cbar.ax.axes.tick_params(length=5)
+plt.show()
 ```
 
 #### Non-randomness coefficient
@@ -435,7 +433,7 @@ ig.plot(high_lvl_brain_ig, "high_lvl_brain.pdf", **visual_style, layout="kk")
 1. ✔️ Check degree distribution is power law
 1. ◻️ netorkx documentation (algorithms in particular);
 1. ◻️ Local connectivity measure;
-1. ◻️ Colour adjacency matrix based on connection supergroup **FRANK**;
+1. ✔️ Colour adjacency matrix based on connection supergroup **FRANK**;
 1. ✔️ Redefine ROI by taking connection with highest weight only **FRANK**;
 1. ◻️ Define coarse graining procedure **BALLA**;
 1. ◻️ Curare il report up to now;
