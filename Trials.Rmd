@@ -237,10 +237,14 @@ temp = roi_dataframe.copy()
 temp['superset_number'] = map_superset_to_number(roi_dataframe['superset'].tolist())
 temp['roi_number'] = map_roi_to_number(roi_dataframe['roi'].tolist())
 
+temp['weight'] = temp['superset_number']
+links = temp[['synaps', 'roi', 'superset', 'weight']]
+links_attr_dict_1 = links.set_index('synaps')['weight'].to_dict()
+nx.set_edge_attributes(graph, links_attr_dict_1, 'weight')
 ```
 
 ```{python}
-colors = ['#7f52ab', '#67e682', '#a3e443', '#f3747e', '#8095cc', '#452664', 
+colors = ['#000000', '#67e682', '#a3e443', '#f3747e', '#8095cc', '#452664', 
           '#f2d7aa', '#b9f6d5', '#dcfe17', '#2727e4', '#38f5a5', '#c44048']
 
 # scale = [0, 59, 68, 97, 175, 188, 199, 209, 215, 221, 226, 250]
@@ -250,9 +254,13 @@ cmap=matplotlib.colors.ListedColormap(colors)
 ```
 
 ```{python}
-matfig = plt.figure(figsize=(20,20))
-#plt.matshow(nx.adjacency_matrix(graph).todense(), fignum=matfig.number, cmap=plt.get_cmap("binary"))
-plt.matshow(nx.adjacency_matrix(graph).todense(), fignum=matfig.number)
+data = nx.adjacency_matrix(graph).astype(np.int8).todense()
+
+f = plt.figure(figsize=(15,15))
+ax = plt.axes([0, 0.05, 0.9, 0.9 ]) #left, bottom, width, height
+im = ax.matshow(data, cmap=cmap)
+cax = plt.axes([0.95, 0.05, 0.05,0.9 ])
+plt.colorbar(mappable=im, cax=cax)
 ```
 
 #### Non-randomness coefficient
