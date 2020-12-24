@@ -25,6 +25,7 @@ import matplotlib.pyplot as plt
 #import igraph as ig
 #import cairocffi as cairo
 # Miscellaneous
+import powerlaw 
 from tqdm import tqdm
 import time
 import numpy as np
@@ -480,9 +481,22 @@ graph.add_edges_from(synapses_dataframe['synaps'])
 Grainer = ClusterGrainer(graph, 10000)
 ```
 
+### Upload metric from pickle
+
 ```{python}
 clusters = np.arange(19000, 0, -1000)
-weight_metric = Grainer.adj
+weight_metric = np.load('exported-traced-adjacencies/pagerank_computed.pkl', allow_pickle=True)
+```
+
+```{python}
+metric = 1/weight_metric[0]
+for k in weight_metric.keys():
+    if k !=0:
+        metric = np.vstack( (metric, 1/weight_metric[k]) )
+```
+
+```{python}
+metric
 ```
 
 ```{python}
