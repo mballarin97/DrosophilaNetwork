@@ -121,6 +121,7 @@ roi_supersets = {
     'SNP': ['SIP(L)', 'SIP(R)', 'SLP(R)', 'SMP(L)', 'SMP(R)', 'SPS(L)', 'SPS(R)'],
     'VLNP': ['AOTU(R)','AVLP(R)','PVLP(R)','PLP(R)','WED(R)'],
     'VMNP': ['VES(L)', 'VES(R)','EPA(L)', 'EPA(R)','GOR(L)', 'GOR(R)','SPS(L)', 'SPS(R)','IPS(R)'],
+    'NotPrimary': ['NotPrimary']
 }
 
 def map_roi_to_superset(links):
@@ -148,7 +149,8 @@ print(f"Non-included sections: {remains}")
 ```
 
 ```{python}
-roi_dataframe.to_csv(os.path.join("exported-traced-adjacencies", "treated_roi.csv"))
+if not os.path.exists(os.path.join("exported-traced-adjacencies", "treated_roi.csv")):
+    roi_dataframe.to_csv(os.path.join("exported-traced-adjacencies", "treated_roi.csv"))
 ```
 
 ## Graph
@@ -192,6 +194,55 @@ dense=nx.adjacency_matrix(graph).todense()
 print(dense)
 res = np.where(dense > 2)
 print(dense[res])
+```
+
+```{python}
+# key is superset, value is list of roi
+roi_supersets = {
+    'AL': 1,
+    'CX': 2,
+    'GNG': 3,
+    'INP': 4,
+    'LH': 5,
+    'LX': 6,
+    'MB': 7,
+    'OL': 8,
+    'PENP': 9,
+    'SNP': 10,
+    'VLNP': 11,
+    'VMNP': 12,
+    'NotPrimary': 13,
+}
+
+roi_numerical = {}
+i = 1
+# create a mapping also for roi
+for roi in roi_dataframe['roi'].unique():
+    roi_numerical[roi]=i
+    i = i + 1
+
+def map_roi_to_number(links):
+    def find_attr(roi):
+        for key, value in roi_numerical.items():
+            if roi == key:
+                return value
+    res = list(map(find_attr, links))
+    return res
+
+def map_superset_to_number(links):
+    def find_attr(roi):
+        for key, value in roi_supersets.items():
+            if roi == key:
+                return value
+    res = list(map(find_attr, links))
+    return res
+
+
+
+temp = roi_dataframe.copy()
+temp['superset_number'] = map_superset_to_number(roi_dataframe['superset'].tolist())
+# temp['superset_number'].astype(int, copy=False)
+temp['roi_number'] = map_roi_to_number(roi_dataframe['roi'].tolist())
 ```
 
 ```{python}
