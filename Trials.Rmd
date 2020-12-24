@@ -223,26 +223,20 @@ for roi in roi_dataframe['roi'].unique():
 
 def map_roi_to_number(links):
     def find_attr(roi):
-        for key, value in roi_numerical.items():
-            if roi == key:
-                return value
+        return roi_numerical[roi]
     res = list(map(find_attr, links))
     return res
 
 def map_superset_to_number(links):
     def find_attr(roi):
-        for key, value in roi_supersets.items():
-            if roi == key:
-                return value
+        return roi_supersets[roi]
     res = list(map(find_attr, links))
     return res
 
-
-
 temp = roi_dataframe.copy()
 temp['superset_number'] = map_superset_to_number(roi_dataframe['superset'].tolist())
-# temp['superset_number'].astype(int, copy=False)
 temp['roi_number'] = map_roi_to_number(roi_dataframe['roi'].tolist())
+
 ```
 
 ```{python}
