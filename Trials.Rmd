@@ -525,21 +525,23 @@ print("Total time: {:.2f} seconds".format((end_time - start_time)))
 
 ```{python}
 start_time = time.time()
-local_pagerank_results = {}
+local_pagerank_results = np.zeros((len(neurons_dataframe), len(neurons_dataframe)))
 for i in range(len(neurons_dataframe)):
     locality = np.zeros(len(neurons_dataframe))
     locality[i] = 1
-    page = pagerank_power(SM, p=0.85, personalize=locality, tol=1e-6)
+    page = pagerank_power(SM, p=0.85, personalize=locality, tol=1e-3)
     local_pagerank_results[i] = page
 end_time = time.time()
-print("Total time: {:.2f} seconds".format((end_time - start_time)))
+print("Total time: {:.2f} hours".format((end_time - start_time)/3600))
 ```
 
 ```{python}
-import pickle
-f = open("pagerank_computed.pkl","wb")
-pickle.dump(local_pagerank_results,f)
-f.close()
+np.save("pagerank_computed", local_pagerank_results)
+```
+
+```{python}
+local_pagerank_results = np.load("pagerank_computed.npy", allow_pickle=True)
+print(local_pagerank_results)
 ```
 
 ```{python}
