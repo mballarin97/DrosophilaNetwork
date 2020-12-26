@@ -1,0 +1,92 @@
+\section{Coarse graining}
+It is necessary to define rigorously a way to apply the 
+coarse graining procedure, i.e. our way to combine different
+neurons in super-neurons. We stress that this procedure
+is not simple at all, and present different degrees of freedom
+that can (and will) be chosen with respect to the performances
+on the data. We start by defining these degrees of freedom:
+\begin{itemize}
+    \item the \tb{metric} $d_{ij}$ that we use to define when two 
+        different neurons are similar;
+    \item The way in which we aggregate the weights after we combine 
+        two nodes.
+\end{itemize}
+We will so present two different algorithms that approaches in different ways the second 
+degree of freedom. We stress that the first algorithm is not really working, but it is 
+however instructing analyzing why it is so.
+
+\subsection{Random aggregation}
+We so present the steps of the first algorithms. Calling $n_i^{(\alpha)}$ the $i$-th 
+neuron at the $\alpha$-th iteration in the coarse graining algorithm and $w_{ij}^{(\alpha)}$
+the links between neurons $n_i^{(\alpha)}$, $n_j^{(\alpha)}$:
+\begin{enumerate}
+    \item Pick a neuron $n_i^{(\alpha)}$ at random;
+    \item Compute the distance $d_i^{(\alpha)}=(d_{i1}^{(\alpha)}, d_{i2}^{(\alpha)}, \dots, d_{iN}^{(\alpha)})$;
+    \item Combine the two nearest neurons:
+        $$
+        n_i^{(\alpha+1)} = \left\{ n_i^{(\alpha)}, \min_{d_i}\left[n_k^{(\alpha)}\right] \right\}
+        $$
+    \item Build the new network connections:
+        $$
+        w_{ij}^{(\alpha+1)} = \left\{ w_{ij}^{(\alpha)}, \bar{w}_{kj}^{(\alpha)}   \right\}
+        $$
+        where $\bar{w}_{kj}^{(\alpha)}$ are a random subset of the connections $w^{(\alpha)}_{kj}$ such that 
+        the density of the network is conserved.
+    \item Start again from point 1.
+\end{enumerate} 
+This constraint on the density was needed, since it avoids a proliferation of connections.
+It is, however, a bound that is not easy to fulfill. In particular, it can be implemented 
+by randomly extract the correct number of connections. This does not work in all cases, since
+not all nodes have the same degree: there are a lot of nodes we very small degree, that have 
+less connections than the ones needed. Another problem of this algorithm is that it is an
+iterative algorithm and it is so really slow: at each iteration we need to compute all the 
+distances and we can eliminate only a neuron at each iteration.
+
+\subsection{Clustering aggregation}
+The second algorithm is simpler and more effective. We make use of a hierarchical agglomerative
+clustering technique, i.e. an algorithm that recursively merges the pair of clusters that 
+minimally increases a given linkage distance. This is really similar to the idea developed 
+for the community detection using the dendogram technique.
+We so perform the following steps:
+\begin{itemize}
+    \item Select the  final number of neurons $N'$, i.e. the number of clusters for the agglomerative
+        clustering;
+    \item Compute the distance matrix $d_{ij}$;
+    \item Apply the clustering algorithm;
+    \item Combine nodes in the same cluster in a supernode $I$, which is connected to another 
+        supernode $J$ if at least a node in $I$ was connected in a node in $J$. The weight of the 
+        connection is the sum of the weights fo the single nodes, i.e.:
+        $$
+        W_{IJ} = \sum_{k\in I, l\in J} w_{kl}
+        $$
+\end{itemize}
+This algorithm has several advantages over the previous one:
+\begin{itemize}
+    \item We do not have to impose the density constraint to avoid the proliferation of the 
+        connections;
+    \item We have to compute the distance matrix only once. This can not seem an advantage.
+        In the random algorithm we had to compute the distance from a node $N\cdot (N-N')$,
+        where $N$ is the total number of nodes and $N'$ the final number of nodes after the 
+        coarse graining, while in the clustering case we must compute the distance $N^2$ times.
+        However, if we want to try different $N'$ or run the algorithm multiple times in the 
+        first case we should start from scratch for each graining, while in the second case
+        we only need to compute the distance matrix once;
+    \item The clustering algorithm used is optimized for even larger systems, and it is so really
+        fast.
+\end{itemize}
+
+
+We decided to use two different metrics for this procedure. We only have to remember that 
+we are minimizing a distance in these algorithms, so strongly connected nodes will be 
+nodes considered nearer. 
+\begin{enumerate}
+    \item The weights, with 
+        $$d^(w)_{ij}=\frac{1}{w_{ij}}$$
+        This is a really naive distance metric, and we do not expect a really good performance
+        for the algorithm. However, it has the advantage of being already computed;
+    \item The local page rank, with:
+        $$d^{pr}_{ij}=\frac{1}{\mbox{pr}_{ij}}$$
+        This is a measure often used in network science, and takes into account both the outcoming
+        and incoming links. We expect much better results with this metric.
+\end{enumerate}
+
