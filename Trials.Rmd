@@ -485,22 +485,15 @@ Grainer = ClusterGrainer(graph, 10000)
 
 ```{python}
 clusters = np.arange(19000, 0, -1000)
-weight_metric = np.load('exported-traced-adjacencies/pagerank_computed.pkl', allow_pickle=True)
+weight_metric = np.load('exported-traced-adjacencies/pagerank_computed.npy', allow_pickle=True)
 ```
 
 ```{python}
-metric = 1/weight_metric[0]
-for k in weight_metric.keys():
-    if k !=0:
-        metric = np.vstack( (metric, 1/weight_metric[k]) )
+metric = 1/weight_metric
 ```
 
 ```{python}
-metric
-```
-
-```{python}
-Grainer.experiment(clusters, weight_metric)
+Grainer.experiment(clusters, metric)
 ```
 
 ```{python}
