@@ -334,50 +334,335 @@ To apply our coarse graining procedure we aggregate the nodes with their nearest
 - **link strength**. We merge the more connected or the less connected (with the idea that they are not influencing the graph properties)
 
 
-#### PageRank measure
+## Approximate visualization of main brain regions
 
 ```{python}
-SM = nx.convert_matrix.to_scipy_sparse_matrix(graph)
+class CoarseGrainer:
+    def __init__(self, nodes, connectivity):
+        """
+            Parameters:
+                nodes: np array size (N,) with node name where N is number of nodes
+                connectivity: np array size (M, 3) where M is the number of links. We have M<<N**2
+        """
+        self.nodes = nodes
+        self.connectivity = connectivity
+        self.N = self.nodes.size
+        self.M = self.connectivity.shape[0]
+        self.powerlaw = np.array([])
+        self.avg_deg_conn = np.array([])
+        self.density = [self.M/self.N**2]
+        print(f'Initialized with connectivity matrix of density: {self.M/self.N**2}')
+        
+    def set_metrics(self, metric_vect, node_id, minmax):
+        """ 
+            Define the metric vector and the node_id to be used at the next iteration
+            Parameters:
+                node_id (string): Name of the selected node
+                metric_vect (np array(2, B)): (connected_node ,metric) of the network wrt @node_id
+                minmax(int): 1 if looking for max of the metric, -1 if looking for min
+        """
+        self.sel_node = node_id
+        self.metric = metric_vect
+        self.minmax = minmax
+        
+    def fusion(self, min_links=10):
+        """
+            Select the nearest node to @self.sel_node. Fuse the two node togheter by keeping the density
+            of connections constant, selecting randomly the links to keep among the possible ones.
+            Eliminate self loops
+        """
+        if self.metric.size != 0:
+            # Select nearest node
+            nearest_node_id = self.metric[:, 0][ np.argmax( self.minmax*self.metric[:, 1] ) ]
+            nearest_node = np.where( self.nodes==nearest_node_id )
+            # Eliminate the nearest node from the node list
+            self.nodes = np.delete(self.nodes, nearest_node)
+            # Compute difference in connectivity to keep the density fixed
+            dM = int( self.M*(2/self.N-1/self.N**2) )
+            # Select the connections of the nearest node
+            connections = np.hstack( (np.where(self.connectivity[:,0]==nearest_node_id),
+                                      np.where(self.connectivity[:,1]==nearest_node_id) ) )
+            connections = np.unique(connections) # keep only the uniques ones
+            # Randomly select the connections by keeping the density fixed
+            min_links = min( min_links, connections.size)
+            connections_selected = np.random.choice(connections, size=max(min_links, connections.size-dM), replace=False)
+            # (----?----) Add selection with probability proportional to the weight (----?----)
+            # Select the non-selected connections
+            connestions_not_selected = np.setdiff1d(connections, connections_selected)
+            # Join connection of the deleted node to the other
+            self.connectivity[:,0][ connections_selected] = self.sel_node
+            self.connectivity[:,1][ connections_selected] = self.sel_node
+            # Eliminate non-selected connections and self loops
+            self.connectivity = np.delete(self.connectivity, connestions_not_selected, axis=0)
+            self.connectivity = self.connectivity[ self.connectivity[:,0] != self.connectivity[:,1] ]
+            
+            # Update nodes number and connectivity
+            self.N -= 1 
+            self.M = self.connectivity.shape[0]
+        
+    def _get_weight(self, node_id):
+        """
+            Get the weights of the links connecting @node_id to other nodes. In particular returns
+            an array of size (2, B) where the first column is the ID of the connected node and
+            the second column contains the weights
+        """
+        temp1 = self.connectivity[:, 1:3][ self.connectivity[:,0]==node_id ]
+        temp2 = self.connectivity[:, 0:3:2][ self.connectivity[:,1]==node_id ]
+        return np.vstack( (temp1, temp2))
+    
+    def _upd_stat(self):
+        """
+            Updates the statistics. Notice that this function is very time consuming since we need
+            to instantiate the graph object. In partiucular we compute:
+                - The coefficient of the power law of the degree distribution
+                - The average of the degree connectivity
+        """
+        # Graph instantiaton
+        synapses= list(zip(self.connectivity[:,0], self.connectivity[:,1]))
+        graph_coarsed = nx.Graph()
+        graph_coarsed.add_nodes_from(self.nodes)
+        graph_coarsed.add_edges_from(synapses)
+        # Degree distribution
+        degree = sorted([d for n, d in graph_coarsed.degree()], reverse=True)
+        fit = powerlaw.Fit(degree) 
+        if self.powerlaw.size==0:
+            self.powerlaw = np.array([fit.alpha, fit.sigma])
+        else:
+            self.powerlaw = np.vstack( (self.powerlaw, [fit.alpha, fit.sigma]) )
+        # Degree connectivity
+        avg_degree_connectivity = nx.average_degree_connectivity(graph_coarsed)
+        avg_degree_connectivity = np.array([i for k,i in avg_degree_connectivity.items()])
+        self.avg_deg_conn = np.append(self.avg_deg_conn, int(avg_degree_connectivity.mean()) )
+        
+    def plot_stat(self):
+        """
+            Plot the two statistics collected in the experiment.
+        """
+        fig, ax = plt.subplots(1, 2, figsize=(12,8))
+        ax[0].set_xlabel('Iteration $10^3$')
+        ax[0].set_ylabel('Coefficient of the power law')
+        ax[0].set_title('Evolution of the power law distribution')
+        ax[0].plot(self.powerlaw[:,0], 'o--', color='blue', label='Coef')
+        ax[0].fill_between(np.arange(self.powerlaw.shape[0]), (self.powerlaw[:,0]+self.powerlaw[:,1]),
+                           (self.powerlaw[:,0]-self.powerlaw[:,1]), alpha=0.3, label='Error', color='green' )
+        ax[0].legend()
+        
+        ax[1].set_xlabel('Iteration $10^3$')
+        ax[1].set_ylabel('Average degree connectivity')
+        ax[1].set_title('Evolution of the average degree connectivity')
+        ax[1].plot(self.avg_deg_conn, 'o--', color='blue')
+        plt.show()
+        
+        
+    def _test(self, Niter, Nupd_stat=1000, min_links=10):
+        """
+            Apply the coarse graining for @Niter iterations and updating the statistics each @Nupd_stat iter
+        """
+        for i in tqdm(range(Niter)):
+            node_id = np.random.choice(self.nodes)
+            metric_vect = self._get_weight(node_id)
+            self.set_metrics(metric_vect, node_id, +1)
+            self.fusion(min_links=min_links)
+            if i%Nupd_stat == 0:
+                self._upd_stat()
+            self.density.append(self.M/self.N**2)
+        print(f'Finalized with connectivity matrix of density: {self.M/self.N**2}')
+```
+
+```{python}
+nodes = np.array(neurons_dataframe['bodyId'])
+M = len(synapses_dataframe['bodyId_pre'])
+connectivity = np.hstack(  (np.array(synapses_dataframe['bodyId_pre']).reshape(M,1), 
+                            np.array(synapses_dataframe['bodyId_post']).reshape(M,1), 
+                           np.array( synapses_dataframe['weight']).reshape(M,1))
+    )
+```
+
+```{python}
+coarse = CoarseGrainer(nodes, connectivity)
 ```
 
 ```{python}
 start_time = time.time()
-locality = np.zeros(len(neurons_dataframe))
-locality[0] = 1        
-page=pagerank_power(SM, p=0.85, personalize=locality, tol=1e-6)
+coarse._test(20000)
 end_time = time.time()
 print("Total time: {:.2f} seconds".format((end_time - start_time)))
 ```
 
 ```{python}
-# compute pagerank ranking
-if PATIENCE:
-    start_time = time.time()
-
-    page = nx.algorithms.link_analysis.pagerank(graph)
-
-    end_time = time.time()
-    print("Total time: {:.2f} minutes".format((end_time - start_time)/60))
-        
-    plt.hist(page.values(), bins=100)
-    plt.show()
+coarse.plot_stat()
 ```
 
 ```{python}
-# compute pagerank ranking
-if PATIENCE:
-    start_time = time.time()
-
-    page = nx.algorithms.link_analysis.pagerank_scipy(graph)
-
-    end_time = time.time()
-    print("Total time: {:.2f} minutes".format((end_time - start_time)/60))
-    
-    plt.hist(page.values(), bins=100)
-    plt.show()
+d = np.array( coarse.density[0:-1:200] )
+plt.plot(d)
+plt.show()
 ```
 
-## Approximate visualization of main brain regions
+```{python}
+coarse.M/coarse.N**2
+```
+
+```{python}
+synapses= list(zip(coarse.connectivity[:,0], coarse.connectivity[:,1]))
+graph_coarsed = nx.Graph()
+graph_coarsed.add_nodes_from(coarse.nodes)
+graph_coarsed.add_edges_from(synapses)
+```
+
+```{python}
+degree = np.array([ d for n, d in graph_coarsed.degree()])
+print(np.mean(degree))
+#bins = np.logspace(0, 4, 100)
+bins = 100
+y, x = np.histogram(degree, bins=bins)
+x = (x[1:]+x[:-1])/2
+# plot degree bins
+plt.loglog()
+plt.plot(x, y, 'ro')
+plt.xlabel('Log Degree log(k)')
+plt.ylabel('Log Frequency ')
+plt.title('Degree distribution')
+plt.grid()
+plt.show()
+```
+
+```{python}
+matfig = plt.figure(figsize=(20,20))
+adj = nx.adjacency_matrix(graph_coarsed).todense()
+plt.matshow(adj, fignum=matfig.number, cmap=plt.get_cmap("binary"))
+plt.show()
+```
+
+## Coarse graining through clustering
+
+```{python}
+from community import induced_graph
+from sklearn.cluster import AgglomerativeClustering
+```
+
+```{python}
+class ClusterGrainer():
+    def __init__(self, graph, n_clusters):
+        self.G = graph
+        self.adj = nx.adjacency_matrix(self.G).todense()
+        self.nodes = np.array([n for n in self.G.nodes()])
+        self.clusterer = AgglomerativeClustering(n_clusters=n_clusters, affinity= 'precomputed', 
+                                                 connectivity =np.sign(self.adj), linkage='single')
+        # Statistics
+        degree = sorted([d for n, d in self.G.degree()], reverse=True)
+        avg_degree_con = nx.average_degree_connectivity(self.G)
+        avg_degree_con = np.array([i for k,i in avg_degree_con.items()])
+        fit = powerlaw.Fit(degree) 
+        self.avg_deg = np.array( [np.mean(degree), np.std(degree)]  )
+        self.avg_deg_con =  np.array( [int(avg_degree_con.mean()), avg_degree_con.std()] )
+        self.power_law = np.array( [fit.alpha, fit.sigma] )
+        self.density = np.array(self.G.number_of_edges()/self.G.number_of_nodes()**2 )
+        
+    def predict(self, metric_mat):
+        clusts = self.clusterer.fit_predict(metric_mat)
+        part = {n :  c for n, c in zip(self.nodes, clusts) }
+        return part
+    
+    def zip_graph(self, partitions, inplace=True):
+        if inplace:
+            self.G = induced_graph(partitions, self.G)
+            self.adj = nx.adjacency_matrix(self.G).todense()
+            self.nodes = np.array([n for n in self.G.nodes()])
+        else:
+            return induced_graph(partitions, self.G)
+        
+    def _upd_stats(self, graph ):
+        degree = sorted([d for n, d in graph.degree()], reverse=True)
+        avg_degree_con = nx.average_degree_connectivity(graph)
+        avg_degree_con = np.array([i for k,i in avg_degree_con.items()])
+        fit = powerlaw.Fit(degree) 
+        
+        self.avg_deg = np.vstack( (self.avg_deg, [np.mean(degree), np.std(degree)])  )
+        self.avg_deg_con = np.vstack( (self.avg_deg_con, [int(avg_degree_con.mean()), avg_degree_con.std()] ))
+        self.power_law = np.vstack( (self.power_law, [fit.alpha, fit.sigma]) )
+        self.density = np.append( self.density, graph.number_of_edges()/graph.number_of_nodes()**2 )
+        
+    def _set_clust(self, n_cl):
+        self.clusterer = AgglomerativeClustering(n_clusters=n_cl, affinity= 'precomputed', 
+                                                 connectivity =np.sign(self.adj), linkage='single')
+        
+    def experiment(self, n_clusters, metric_mat, inplace=False):
+        for cl in tqdm(n_clusters):
+            self._set_clust(cl)
+            partitions = self.predict(metric_mat)
+            new_graph = self.zip_graph(partitions, inplace=inplace)
+            self._upd_stats(new_graph)
+    
+    def plot_stats(self, sizes):
+        fig, ax = plt.subplots(2, 2, figsize=(12, 12))
+        ax = ax.flatten()
+        ax[0].set_xlabel('Size of the network [# of nodes]')
+        ax[0].set_ylabel('Coefficient of the power law')
+        ax[0].set_title('Evolution of the power law distribution')
+        ax[0].plot(sizes, self.power_law[:,0], 'o--', color='blue', label='Coef')
+        ax[0].fill_between(sizes, (self.power_law[:,0]+self.power_law[:,1]),
+                           (self.power_law[:,0]-self.power_law[:,1]), alpha=0.3, label='Error', color='green' )
+        ax[0].legend()
+        
+        ax[1].set_xlabel('Size of the network [# of nodes]')
+        ax[1].set_ylabel('Density #edges/(#nodes)^2')
+        ax[1].set_title('Evolution of the network density')
+        ax[1].plot(sizes, self.density, 'o--', color='blue')
+        
+        ax[2].set_xlabel('Size of the network [# of nodes]')
+        ax[2].set_ylabel('Average degree')
+        ax[2].set_title('Evolution of the average degree')
+        ax[2].plot(sizes, self.avg_deg[:,0], 'o--', color='blue', label='Average')
+        ax[2].fill_between(sizes, (self.avg_deg[:,0]+self.avg_deg[:,1]),
+                           (self.avg_deg[:,0]-self.avg_deg[:,1]), alpha=0.3, label='Error', color='green' )
+        ax[2].legend()
+        
+        ax[3].set_xlabel('Size of the network [# of nodes]')
+        ax[3].set_ylabel('Average degree connectivity')
+        ax[3].set_title('Evolution of the average degree connectivity')
+        ax[3].plot(sizes, self.avg_deg_con[:,0], 'o--', color='blue', label='Average')
+        ax[3].fill_between(sizes, (self.avg_deg_con[:,0]+self.avg_deg_con[:,1]),
+                           (self.avg_deg_con[:,0]-self.avg_deg_con[:,1]), alpha=0.3, label='Error', color='green' )
+        ax[3].legend()
+        
+        plt.show()
+```
+
+```{python}
+graph = nx.Graph()
+graph.add_nodes_from(neurons_dataframe['bodyId'])
+graph.add_edges_from(synapses_dataframe['synaps'])
+Grainer = ClusterGrainer(graph, 10000)
+```
+
+### Upload metric from pickle
+
+```{python}
+clusters = np.arange(19000, 0, -1000)
+weight_metric = np.load('exported-traced-adjacencies/pagerank_computed.npy', allow_pickle=True)
+```
+
+```{python}
+metric = 1/weight_metric
+```
+
+```{python}
+Grainer.experiment(clusters, metric)
+```
+
+```{python}
+sizes = np.insert(clusters, 0, graph.number_of_nodes())
+Grainer.plot_stats(sizes)
+```
+
+```{python}
+
+```
+
+```{python}
+
+```
 
 ```{python}
 names = ['GNG', 'PENP', 'VMNP', 'CX', 'LX', 'AL', 'MB', 'INP', 'VLNP', 'OL', 'SNP', 'LH']
@@ -430,18 +715,21 @@ ig.plot(high_lvl_brain_ig, "high_lvl_brain.pdf", **visual_style, layout="kk")
 1. ✔️ list brain regions to create different $12$ theoretical communities;
 1. ✔️ understand what the $12$ regions does; 
 1. 🟥 Understand brain section of neurons;
-1. ✔️ Check degree distribution is power law
-1. ◻️ netorkx documentation (algorithms in particular);
+1. ✔️ Check degree distribution is power law;
+1. ✔️ netorkx documentation (algorithms in particular);
 1. ◻️ Local connectivity measure;
 1. ✔️ Colour adjacency matrix based on connection supergroup **FRANK**;
 1. ✔️ Redefine ROI by taking connection with highest weight only **FRANK**;
-1. ◻️ Define coarse graining procedure **BALLA**;
+1. ✔️ Define coarse graining procedure **BALLA**;
 1. ◻️ Curare il report up to now;
-1. ◻️ Better define coarse graining metrics;
+1. ✔️ Better define coarse graining metrics;
 1. ◻️ Community detection (naive and after coarse graining);
-1. ◻️ Betweenness (especially for multiple ROI synapses), centrality, small world characteristics;
+1. ◻️ Betweenness (especially for multiple ROI synapses), centrality, small world characteristics **FRANK**;
 1. ✔️Distance from random network;
-1. ◻️ robustness to cuts. In particular it may be interesting to attack outer regions of the brain, the more easily damaged. The  **common connectome constraint paper** already say something about it;
+1. ◻️ robustness to cuts. In particular it may be interesting to attack outer regions of the brain, the more easily damaged. **BALLA**. The  **common connectome constraint paper** already say something about it;
+1. ◻️ Visualization of networks and parameters;
+1. ◻️ Aggregate by ROI, modification with coarse graining;
+1. ◻️ Book an appointment to discuss state of the work
 
 
 ###### Problems
