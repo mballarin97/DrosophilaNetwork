@@ -406,7 +406,7 @@ class ClusterGrainer():
         
     def predict(self, metric_mat):
         clusts = self.clusterer.fit_predict(metric_mat)
-        part = { n : c for n, c in zip(self.nodes, clusts) }
+        part = {n :  c for n, c in zip(self.nodes, clusts) }
         return part
     
     def zip_graph(self, partitions, inplace=True):
@@ -436,7 +436,7 @@ class ClusterGrainer():
         for cl in tqdm(n_clusters):
             self._set_clust(cl)
             partitions = self.predict(metric_mat)
-            new_graph= self.zip_graph(partitions, inplace=inplace)
+            new_graph = self.zip_graph(partitions, inplace=inplace)
             self._upd_stats(new_graph)
     
     def plot_stats(self, sizes):
@@ -500,6 +500,9 @@ Grainer.experiment(clusters, metric)
 sizes = np.insert(clusters, 0, graph.number_of_nodes())
 Grainer.plot_stats(sizes)
 ```
+
+![image.png](attachment:image.png)
+
 
 #### PageRank measure
 
@@ -623,18 +626,21 @@ ig.plot(high_lvl_brain_ig, "high_lvl_brain.pdf", **visual_style, layout="kk")
 1. ✔️ list brain regions to create different $12$ theoretical communities;
 1. ✔️ understand what the $12$ regions does; 
 1. 🟥 Understand brain section of neurons;
-1. ✔️ Check degree distribution is power law
-1. ◻️ netorkx documentation (algorithms in particular);
+1. ✔️ Check degree distribution is power law;
+1. ✔️ netorkx documentation (algorithms in particular);
 1. ◻️ Local connectivity measure;
-1. ◻️ Colour adjacency matrix based on connection supergroup **FRANK**;
-1. ◻️ Redefine ROI by taking connection with highest weight only **FRANK**;
-1. ◻️ Define coarse graining procedure **BALLA**;
+1. ✔️ Colour adjacency matrix based on connection supergroup **FRANK**;
+1. ✔️ Redefine ROI by taking connection with highest weight only **FRANK**;
+1. ✔️ Define coarse graining procedure **BALLA**;
 1. ◻️ Curare il report up to now;
-1. ◻️ Better define coarse graining metrics;
+1. ✔️ Better define coarse graining metrics;
 1. ◻️ Community detection (naive and after coarse graining);
-1. ◻️ Betweenness (especially for multiple ROI synapses), centrality, small world characteristics;
+1. ◻️ Betweenness (especially for multiple ROI synapses), centrality, small world characteristics **FRANK**;
 1. ✔️Distance from random network;
-1. ◻️ robustness to cuts. In particular it may be interesting to attack outer regions of the brain, the more easily damaged. The  **common connectome constraint paper** already say something about it;
+1. ◻️ robustness to cuts. In particular it may be interesting to attack outer regions of the brain, the more easily damaged. **BALLA**. The  **common connectome constraint paper** already say something about it;
+1. ◻️ Visualization of networks and parameters;
+1. ◻️ Aggregate by ROI, modification with coarse graining;
+1. ◻️ Book an appointment to discuss state of the work
 
 
 ###### Problems
