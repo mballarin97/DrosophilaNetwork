@@ -21,13 +21,13 @@ from fast_pagerank import pagerank_power
 # Data handling
 import pandas as pd
 # Visualization
+import matplotlib
 import matplotlib.pyplot as plt
-#import igraph as ig
-#import cairocffi as cairo
+import igraph as ig
+import cairocffi as cairo
 # Miscellaneous
-import powerlaw 
-from tqdm import tqdm
 import time
+import os
 import numpy as np
 ```
 
@@ -50,7 +50,6 @@ roi_dataframe = pd.read_csv('exported-traced-adjacencies/traced-roi-connections.
 ```
 
 ```{python}
-len( neurons_dataframe['type'].unique() ) 
 neurons_dataframe.head()
 ```
 
@@ -58,53 +57,208 @@ neurons_dataframe.head()
 # add link as 2-tuple between neurons bodyId
 synapses_dataframe['synaps'] = list(zip(synapses_dataframe.bodyId_pre, synapses_dataframe.bodyId_post))
 print(synapses_dataframe.head())
-print(synapses_dataframe['synaps'].nunique() )
-print(len(synapses_dataframe['synaps']))
-```
-
-```{python}
-# Visualization of 
-#bins = np.logspace(0, 4, 100)
-bins = 100
-y, x = np.histogram(synapses_dataframe['weight'], bins=bins)
-x = (x[1:]+x[:-1])/2
-plt.loglog()
-plt.plot(x, y, 'ro')
-plt.xlabel('Log weight log(w)')
-plt.ylabel('Log Frequency ')
-plt.title('Weight distribution')
-plt.grid()
-plt.show()
+print(f"Number of unique synapses: {synapses_dataframe['synaps'].nunique()}")
+print(f"Length of synapses dataset: {len(synapses_dataframe)}")
+# NOTE: the weight of the synapses dataset is the sum of all the weights from the ROI
 ```
 
 #### Hemibrain regions of interest
 
 ```{python}
+roi_dataframe['synaps'] = list(zip(roi_dataframe.bodyId_pre, roi_dataframe.bodyId_post))
+cols = list(roi_dataframe.columns)  # to use later
+print(roi_dataframe.head())
+print(f"Number of unique synapses: {roi_dataframe['synaps'].nunique()}")
+print(f"Length of ROI dataset: {len(roi_dataframe)}")
+print(f"Difference: {len(roi_dataframe) - roi_dataframe['synaps'].nunique()}")
+```
+
+```{python}
+roi = roi_dataframe.to_numpy()
+indexes_to_delete = []
+out_index = 0
+hhh = 0
+
+start_time = time.time()
+
+while out_index < len(roi_dataframe):
+    j = 1
+    while(out_index+j < len(roi_dataframe) and roi[out_index][4] == roi[out_index + j][4]):
+        indexes_to_delete.append(out_index+j)
+        j = j + 1
+    out_index = out_index + j
+
+roi = np.delete(roi, obj=indexes_to_delete, axis=0)
+
+end_time = time.time()
+print("Total time: {:.2f} seconds".format((end_time - start_time)))
+```
+
+```{python}
+roi_dataframe = pd.DataFrame(roi, columns=list(roi_dataframe.columns))
+print(roi_dataframe.head())
+
+# sanity check
+assert roi_dataframe['synaps'].nunique() == len(roi_dataframe)
+```
+
+```{python}
+# key is superset, value is list of roi
+roi_supersets = {
+    'AL': ['AL(L)', 'AL(R)'],
+    'CX': ['FB', 'EB', 'PB', 'NO', 'AB(L)', 'AB(R)'],
+    'GNG': ['GNG'],
+    'INP': ['CRE(L)', 'CRE(R)', 'SCL(L)', 'SCL(R)', 'IB', 'ICL(L)', 'ICL(R)', 'ATL(L)', 'ATL(R)', 'IB'],
+    'LH': ['LH(R)'],
+    'LX': ['BU(L)', 'BU(R)','LAL(L)', 'LAL(R)'],
+    'MB': ['CA(R)','PED(R)',"a'L(L)", "a'L(R)", 'aL(L)', 'aL(R)', "b'L(L)", "b'L(R)", 'bL(L)', 'bL(R)', 'gL(L)', 'gL(R)'],
+    'OL': ['AME(R)','ME(R)','LO(R)', 'LOP(R)'],
+    'PENP': ['SAD','CAN(R)','FLA(R)'],
+    'SNP': ['SIP(L)', 'SIP(R)', 'SLP(R)', 'SMP(L)', 'SMP(R)', 'SPS(L)', 'SPS(R)'],
+    'VLNP': ['AOTU(R)','AVLP(R)','PVLP(R)','PLP(R)','WED(R)'],
+    'VMNP': ['VES(L)', 'VES(R)','EPA(L)', 'EPA(R)','GOR(L)', 'GOR(R)','SPS(L)', 'SPS(R)','IPS(R)'],
+    'NotPrimary': ['NotPrimary']
+}
+
+def map_roi_to_superset(links):
+    def find_attr(roi):
+        for key, value in roi_supersets.items():
+            if roi in value:
+                return key
+    res = list(map(find_attr, links))
+    return res
+
+roi_dataframe['superset'] = map_roi_to_superset(roi_dataframe['roi'].tolist())
 roi_dataframe.head()
 ```
 
 ```{python}
-print(roi_dataframe['roi'].unique() )
-print(len(roi_dataframe))
+# sanity check
+roi = list(roi_dataframe['roi'].unique())
+removed = []
+for elem in roi:
+    for key, value in roi_supersets.items():
+        if elem in value and elem not in removed:
+            removed.append(elem)
+remains = [x for x in roi if x not in removed]
+print(f"Non-included sections: {remains}")
 ```
 
 ```{python}
-(4218945 - 3521163)/3521163
+if not os.path.exists(os.path.join("exported-traced-adjacencies", "treated_roi.csv")):
+    roi_dataframe.to_csv(os.path.join("exported-traced-adjacencies", "treated_roi.csv"))
 ```
 
 ## Graph
 
 ```{python}
+# neuron type is attribute of the neuron in the graph, we directly extract it from the dataframe
+nodes = neurons_dataframe[['bodyId', 'type']]
+nodes_attr_dict = nodes.set_index('bodyId')['type'].to_dict()
+
+links = roi_dataframe[['synaps', 'roi', 'superset', 'weight']]
+links_attr_dict_1 = links.set_index('synaps')['roi'].to_dict()
+links_attr_dict_2 = links.set_index('synaps')['superset'].to_dict()
+links_attr_dict_3 = links.set_index('synaps')['weight'].to_dict()
+```
+
+```{python}
 graph = nx.Graph()
+
 graph.add_nodes_from(neurons_dataframe['bodyId'])
-graph.add_edges_from(synapses_dataframe['synaps'])
+nx.set_node_attributes(graph, nodes_attr_dict, 'type')
+
+graph.add_edges_from(roi_dataframe['synaps'])
+nx.set_edge_attributes(graph, links_attr_dict_1, 'roi')
+nx.set_edge_attributes(graph, links_attr_dict_2, 'superset')
+# nx.set_edge_attributes(graph, links_attr_dict_3, 'weight')
+```
+
+```{python}
+# sanity check
+print(f"Node: {list(graph.nodes)[0]}")
+print(f"Node attributes: {graph.nodes[200326126]}")
+
+print(f"Edge: {list(graph.edges)[0]}")
+print(f"Edge attributes: {graph.edges[(200326126, 264083994)]}")
 ```
 
 #### Adjacency matrix
 
 ```{python}
-matfig = plt.figure(figsize=(20,20))
-plt.matshow(nx.adjacency_matrix(graph).todense(), fignum=matfig.number, cmap=plt.get_cmap("binary"))
+# key is superset, value is list of roi
+roi_supersets = {
+    'AL': 1,
+    'CX': 2,
+    'GNG': 3,
+    'INP': 4,
+    'LH': 5,
+    'LX': 6,
+    'MB': 7,
+    'OL': 8,
+    'PENP': 9,
+    'SNP': 10,
+    'VLNP': 11,
+    'VMNP': 12,
+    'NotPrimary': 13,
+}
+
+roi_numerical = {}
+i = 1
+# create a mapping also for roi
+for roi in roi_dataframe['roi'].unique():
+    roi_numerical[roi]=i
+    i = i + 1
+
+def map_roi_to_number(links):
+    def find_attr(roi):
+        return roi_numerical[roi]
+    res = list(map(find_attr, links))
+    return res
+
+def map_superset_to_number(links):
+    def find_attr(roi):
+        return roi_supersets[roi]
+    res = list(map(find_attr, links))
+    return res
+
+temp = roi_dataframe.copy()
+temp['superset_number'] = map_superset_to_number(roi_dataframe['superset'].tolist())
+temp['roi_number'] = map_roi_to_number(roi_dataframe['roi'].tolist())
+
+temp['weight'] = temp['superset_number']
+links = temp[['synaps', 'roi', 'superset', 'weight']]
+links_attr_dict_1 = links.set_index('synaps')['weight'].to_dict()
+nx.set_edge_attributes(graph, links_attr_dict_1, 'weight')
+```
+
+```{python}
+colors = ['#000000', '#67e682', '#cccccc', '#f3747e', '#8095cc', '#452664', 
+          '#f2d7aa', '#b9f6d5', '#dcfe17', '#2727e4', '#38f5a5', '#c44048',
+          '#CC5B01', '#0793c6', '#ffffff']
+
+scale = list(range(0,15))
+
+cmap=matplotlib.colors.ListedColormap(colors)
+norm=matplotlib.colors.BoundaryNorm(scale, len(colors))
+```
+
+```{python}
+print(list(roi_supersets.keys()))
+```
+
+```{python}
+data = nx.adjacency_matrix(graph).astype(np.int8).todense()
+f = plt.figure(figsize=(15,15))
+ax = plt.axes([0, 0.05, 0.9, 0.9 ]) #left, bottom, width, height
+im = ax.matshow(data, cmap=cmap, norm=norm)
+cax = plt.axes([0.95, 0.05, 0.05,0.9 ])
+cbar = plt.colorbar(mappable=im, cax=cax, ticks=np.linspace(0, 14, 14, endpoint=False) + 1/2, spacing='uniform', label='Superset connection type')
+# cbar.ax.set_yticklabels(['< -1', '0', '> 1'])  # vertically oriented colorbar
+ticks = [str(i) for i in range(1,14)]
+cbar.ax.set_yticklabels(['No link'] + list(roi_supersets.keys()))  # vertically oriented colorbar
+cbar.ax.axes.tick_params(length=5)
+plt.show()
 ```
 
 #### Non-randomness coefficient
@@ -179,6 +333,9 @@ To apply our coarse graining procedure we aggregate the nodes with their nearest
 - **local page rank**. The local page rank gives the proximity of the nodes with respect to the chosen node. So the second highest node is gonna be merged with the one where the lpr is computed. Networkx creates each time the sparse matrix, which is a time consuming task. We need to compute the page rank several times, and so chosen to use another representation;
 - **link strength**. We merge the more connected or the less connected (with the idea that they are not influencing the graph properties)
 
+
+## Approximate visualization of main brain regions
+
 ```{python}
 class CoarseGrainer:
     def __init__(self, nodes, connectivity):
@@ -235,7 +392,6 @@ class CoarseGrainer:
             # Join connection of the deleted node to the other
             self.connectivity[:,0][ connections_selected] = self.sel_node
             self.connectivity[:,1][ connections_selected] = self.sel_node
-
             # Eliminate non-selected connections and self loops
             self.connectivity = np.delete(self.connectivity, connestions_not_selected, axis=0)
             self.connectivity = self.connectivity[ self.connectivity[:,0] != self.connectivity[:,1] ]
@@ -361,7 +517,6 @@ print(np.mean(degree))
 bins = 100
 y, x = np.histogram(degree, bins=bins)
 x = (x[1:]+x[:-1])/2
-
 # plot degree bins
 plt.loglog()
 plt.plot(x, y, 'ro')
@@ -501,79 +656,13 @@ sizes = np.insert(clusters, 0, graph.number_of_nodes())
 Grainer.plot_stats(sizes)
 ```
 
-![image.png](attachment:image.png)
-
-
-#### PageRank measure
-
 ```{python}
-SM = nx.convert_matrix.to_scipy_sparse_matrix(graph)
+
 ```
 
 ```{python}
-start_time = time.time()
-locality = np.zeros(len(neurons_dataframe))
-locality[0] = 1        
-page=pagerank_power(SM, p=0.85, personalize=locality, tol=1e-6)
-end_time = time.time()
-print("Total time: {:.2f} seconds".format((end_time - start_time)))
+
 ```
-
-```{python}
-start_time = time.time()
-local_pagerank_results = np.zeros((len(neurons_dataframe), len(neurons_dataframe)))
-for i in range(len(neurons_dataframe)):
-    locality = np.zeros(len(neurons_dataframe))
-    locality[i] = 1
-    page = pagerank_power(SM, p=0.85, personalize=locality, tol=1e-3)
-    local_pagerank_results[i] = page
-end_time = time.time()
-print("Total time: {:.2f} hours".format((end_time - start_time)/3600))
-```
-
-```{python}
-np.save("pagerank_computed", local_pagerank_results)
-```
-
-```{python}
-local_pagerank_results = np.load("pagerank_computed.npy", allow_pickle=True)
-print(local_pagerank_results)
-```
-
-```{python}
-print(page)
-print(len(page))
-```
-
-```{python}
-# compute pagerank ranking
-if PATIENCE:
-    start_time = time.time()
-
-    page = nx.algorithms.link_analysis.pagerank(graph)
-
-    end_time = time.time()
-    print("Total time: {:.2f} minutes".format((end_time - start_time)/60))
-        
-    plt.hist(page.values(), bins=100)
-    plt.show()
-```
-
-```{python}
-# compute pagerank ranking
-if PATIENCE:
-    start_time = time.time()
-
-    page = nx.algorithms.link_analysis.pagerank_scipy(graph)
-
-    end_time = time.time()
-    print("Total time: {:.2f} minutes".format((end_time - start_time)/60))
-    
-    plt.hist(page.values(), bins=100)
-    plt.show()
-```
-
-## Approximate visualization of main brain regions
 
 ```{python}
 names = ['GNG', 'PENP', 'VMNP', 'CX', 'LX', 'AL', 'MB', 'INP', 'VLNP', 'OL', 'SNP', 'LH']
@@ -592,7 +681,7 @@ high_lvl_brain_ig = ig.Graph.from_networkx(high_lvl_brain)
 ```{python}
 colors = ig.drawing.colors.known_colors
 colors = list(colors.keys())
-print(colors)
+#print(colors)
 ```
 
 ```{python}
@@ -644,7 +733,7 @@ ig.plot(high_lvl_brain_ig, "high_lvl_brain.pdf", **visual_style, layout="kk")
 
 
 ###### Problems
-In point (3), we have that the same synapse (same link between two neurons, as we've defined it here) may belong to more than one region. We could add only the one with the highest weight, but often is not possible. Random?
+~In point (3), we have that the same synapse (same link between two neurons, as we've defined it here) may belong to more than one region. We could add only the one with the highest weight, but often is not possible. Random?~ Fixed by taking the highest-weight only connection.
 
 
 ## Average measures
