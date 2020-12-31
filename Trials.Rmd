@@ -55,8 +55,6 @@ neurons_dataframe.head()
 ```
 
 ```{python}
-# add link as 2-tuple between neurons bodyId
-synapses_dataframe['synaps'] = list(zip(synapses_dataframe.bodyId_pre, synapses_dataframe.bodyId_post))
 print(synapses_dataframe.head())
 print(f"Number of unique synapses: {synapses_dataframe['synaps'].nunique()}")
 print(f"Length of synapses dataset: {len(synapses_dataframe)}")
@@ -66,7 +64,6 @@ print(f"Length of synapses dataset: {len(synapses_dataframe)}")
 #### Hemibrain regions of interest
 
 ```{python}
-roi_dataframe['synaps'] = list(zip(roi_dataframe.bodyId_pre, roi_dataframe.bodyId_post))
 cols = list(roi_dataframe.columns)  # to use later
 print(roi_dataframe.head())
 print(f"Number of unique synapses: {roi_dataframe['synaps'].nunique()}")
@@ -75,28 +72,6 @@ print(f"Difference: {len(roi_dataframe) - roi_dataframe['synaps'].nunique()}")
 ```
 
 ```{python}
-roi = roi_dataframe.to_numpy()
-indexes_to_delete = []
-out_index = 0
-hhh = 0
-
-start_time = time.time()
-
-while out_index < len(roi_dataframe):
-    j = 1
-    while(out_index+j < len(roi_dataframe) and roi[out_index][4] == roi[out_index + j][4]):
-        indexes_to_delete.append(out_index+j)
-        j = j + 1
-    out_index = out_index + j
-
-roi = np.delete(roi, obj=indexes_to_delete, axis=0)
-
-end_time = time.time()
-print("Total time: {:.2f} seconds".format((end_time - start_time)))
-```
-
-```{python}
-roi_dataframe = pd.DataFrame(roi, columns=list(roi_dataframe.columns))
 print(roi_dataframe.head())
 
 # sanity check
