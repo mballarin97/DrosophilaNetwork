@@ -14,6 +14,8 @@ jupyter:
 ---
 
 ```{python}
+import utils
+
 # Network analysis
 import networkx as nx
 from scipy import sparse
@@ -45,9 +47,7 @@ PATIENCE = False
 https://asajadi.github.io/fast-pagerank/
 
 ```{python}
-neurons_dataframe = pd.read_csv('exported-traced-adjacencies/traced-neurons.csv')
-synapses_dataframe = pd.read_csv('exported-traced-adjacencies/traced-total-connections.csv')
-roi_dataframe = pd.read_csv('exported-traced-adjacencies/traced-roi-connections.csv')
+neurons_dataframe, synapses_dataframe, roi_dataframe = utils.read_datasets()
 ```
 
 ```{python}
