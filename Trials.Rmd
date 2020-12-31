@@ -29,6 +29,7 @@ import cairocffi as cairo
 import time
 import os
 import numpy as np
+from tqdm import tqdm
 ```
 
 ```{python}
