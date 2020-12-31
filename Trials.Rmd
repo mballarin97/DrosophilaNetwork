@@ -61,6 +61,10 @@ print(f"Length of synapses dataset: {len(synapses_dataframe)}")
 # NOTE: the weight of the synapses dataset is the sum of all the weights from the ROI
 ```
 
+```{python}
+
+```
+
 #### Hemibrain regions of interest
 
 ```{python}
@@ -69,10 +73,6 @@ print(roi_dataframe.head())
 print(f"Number of unique synapses: {roi_dataframe['synaps'].nunique()}")
 print(f"Length of ROI dataset: {len(roi_dataframe)}")
 print(f"Difference: {len(roi_dataframe) - roi_dataframe['synaps'].nunique()}")
-```
-
-```{python}
-print(roi_dataframe.head())
 
 # sanity check
 assert roi_dataframe['synaps'].nunique() == len(roi_dataframe)
@@ -96,15 +96,7 @@ roi_supersets = {
     'NotPrimary': ['NotPrimary']
 }
 
-def map_roi_to_superset(links):
-    def find_attr(roi):
-        for key, value in roi_supersets.items():
-            if roi in value:
-                return key
-    res = list(map(find_attr, links))
-    return res
-
-roi_dataframe['superset'] = map_roi_to_superset(roi_dataframe['roi'].tolist())
+#roi_dataframe['superset'] = utils.map_roi_to_superset(roi_dataframe['roi'].tolist(), roi_supersets)
 roi_dataframe.head()
 ```
 
@@ -118,11 +110,6 @@ for elem in roi:
             removed.append(elem)
 remains = [x for x in roi if x not in removed]
 print(f"Non-included sections: {remains}")
-```
-
-```{python}
-if not os.path.exists(os.path.join("exported-traced-adjacencies", "treated_roi.csv")):
-    roi_dataframe.to_csv(os.path.join("exported-traced-adjacencies", "treated_roi.csv"))
 ```
 
 ## Graph
