@@ -15,6 +15,7 @@ jupyter:
 
 ```{python}
 import utils
+import powerlaw 
 
 # Network analysis
 import networkx as nx
@@ -126,6 +127,11 @@ links_attr_dict_3 = links.set_index('synaps')['weight'].to_dict()
 ```
 
 ```{python}
+print((roi_dataframe['synaps'][0]))
+print(type(roi_dataframe['synaps'][0]))
+```
+
+```{python}
 graph = nx.Graph()
 
 graph.add_nodes_from(neurons_dataframe['bodyId'])
@@ -191,8 +197,8 @@ temp['roi_number'] = map_roi_to_number(roi_dataframe['roi'].tolist())
 
 temp['weight'] = temp['superset_number']
 links = temp[['synaps', 'roi', 'superset', 'weight']]
-links_attr_dict_1 = links.set_index('synaps')['weight'].to_dict()
-nx.set_edge_attributes(graph, links_attr_dict_1, 'weight')
+#links_attr_dict_1 = links.set_index('synaps')['weight'].to_dict()
+#nx.set_edge_attributes(graph, links_attr_dict_1, 'weight')
 ```
 
 ```{python}
@@ -252,7 +258,6 @@ print(degree.mean())
 # reverse = True to have the cumulative distribution
 degree_sequence = sorted([d for n, d in graph.degree()], reverse=True) 
 # Power laws are probability distributions with the form:p(x)∝x−α
-import powerlaw 
 # NOTE: xmin is the data value beyond which distributions should be fitted. 
 # If None an optimal one will be calculated
 fit = powerlaw.Fit(degree_sequence) 
@@ -502,16 +507,56 @@ plt.show()
 ```{python}
 from community import induced_graph
 from sklearn.cluster import AgglomerativeClustering
+from collections import Counter
+```
+
+```{python}
+for node1, node2, datas in graph.edges(data=True):
+    A = np.array(datas.get('superset', None))
+    c = Counter(A.flat).most_common(1)
+    d = c
+    print(d)
+    break
+    #ret[node1, node2]
+```
+
+```{python}
+def my_induced_graph(partition, graph):
+    
+    ret = nx.Graph()
+    ret.add_nodes_from(partition.values())
+        
+    for node1, node2, datas in graph.edges(data=True):
+        edge_weight = datas.get('weight', 1)
+        edge_superset = datas.get('superset', [])
+        edge_roi = datas.get('roi', [])
+        com1 = partition[node1]
+        com2 = partition[node2]
+        w_prec = ret.get_edge_data(com1, com2, {'weight': 0}).get('weight', 1)
+        roi_prec = ret.get_edge_data(com1, com2, {'roi': []}).get('roi', [])
+        superset_prec = ret.get_edge_data(com1, com2, {'superset': []}).get('superset', [])
+        ret.add_edge(com1, com2, **{'weight': w_prec + edge_weight,
+                                    'superset': superset_prec + [edge_superset],
+                                    'roi': roi_prec + [edge_roi]}
+                    )
+        
+    for node1, node2, datas in ret.edges(data=True):
+        A = numpy.array(datas.get('superset', None))
+        c = Counter(A.flat).most_common(1)
+        d = c[0][0]
+        ret[node1][node2]['superset']=d
+    return ret
 ```
 
 ```{python}
 class ClusterGrainer():
-    def __init__(self, graph, n_clusters):
+    def __init__(self, graph, n_clusters, preserve_roi=False):
         self.G = graph
         self.adj = nx.adjacency_matrix(self.G).todense()
         self.nodes = np.array([n for n in self.G.nodes()])
         self.clusterer = AgglomerativeClustering(n_clusters=n_clusters, affinity= 'precomputed', 
                                                  connectivity =np.sign(self.adj), linkage='single')
+        self.preserve_roi = preserve_roi
         # Statistics
         degree = sorted([d for n, d in self.G.degree()], reverse=True)
         avg_degree_con = nx.average_degree_connectivity(self.G)
@@ -519,21 +564,28 @@ class ClusterGrainer():
         fit = powerlaw.Fit(degree) 
         self.avg_deg = np.array( [np.mean(degree), np.std(degree)]  )
         self.avg_deg_con =  np.array( [int(avg_degree_con.mean()), avg_degree_con.std()] )
+        self.con_distr_density, self.con_distr_bins = np.histogram(avg_degree_con, 200, density=True)   # returns 2-tuple (density, edges)
         self.power_law = np.array( [fit.alpha, fit.sigma] )
         self.density = np.array(self.G.number_of_edges()/self.G.number_of_nodes()**2 )
         
     def predict(self, metric_mat):
         clusts = self.clusterer.fit_predict(metric_mat)
-        part = {n :  c for n, c in zip(self.nodes, clusts) }
-        return part
+        partition = { n : c for n, c in zip(self.nodes, clusts) }
+        return partition
     
     def zip_graph(self, partitions, inplace=True):
         if inplace:
-            self.G = induced_graph(partitions, self.G)
+            if(self.preserve_roi):
+                self.G = my_induced_graph(partitions, self.G)
+            else:
+                self.G = induced_graph(partitions, self.G)
             self.adj = nx.adjacency_matrix(self.G).todense()
             self.nodes = np.array([n for n in self.G.nodes()])
         else:
-            return induced_graph(partitions, self.G)
+            if self.preserve_roi:
+                return my_induced_graph(partitions, self.G)
+            else:
+                return induced_graph(partitions, self.G)
         
     def _upd_stats(self, graph ):
         degree = sorted([d for n, d in graph.degree()], reverse=True)
@@ -543,6 +595,9 @@ class ClusterGrainer():
         
         self.avg_deg = np.vstack( (self.avg_deg, [np.mean(degree), np.std(degree)])  )
         self.avg_deg_con = np.vstack( (self.avg_deg_con, [int(avg_degree_con.mean()), avg_degree_con.std()] ))
+        temp_density, temp_bins = np.histogram(avg_degree_con, 200, density=True) 
+        self.con_distr_density = np.vstack( (self.con_distr_density, temp_density) )
+        self.con_distr_bins = np.vstack( (self.con_distr_bins, temp_bins) )
         self.power_law = np.vstack( (self.power_law, [fit.alpha, fit.sigma]) )
         self.density = np.append( self.density, graph.number_of_edges()/graph.number_of_nodes()**2 )
         
@@ -593,10 +648,10 @@ class ClusterGrainer():
 ```
 
 ```{python}
-graph = nx.Graph()
-graph.add_nodes_from(neurons_dataframe['bodyId'])
-graph.add_edges_from(synapses_dataframe['synaps'])
-Grainer = ClusterGrainer(graph, 10000)
+g = graph.copy()
+#graph.add_nodes_from(neurons_dataframe['bodyId'])
+#graph.add_edges_from(synapses_dataframe['synaps'])
+Grainer = ClusterGrainer(g, 10000, preserve_roi=True)
 ```
 
 ### Upload metric from pickle
@@ -611,7 +666,10 @@ metric = 1/weight_metric
 ```
 
 ```{python}
-Grainer.experiment(clusters, metric)
+start = time.time()
+Grainer.experiment([clusters[5]], metric)
+end = time.time()
+print(f"Time needed {end_time-start_time}")
 ```
 
 ```{python}
