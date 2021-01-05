@@ -26,13 +26,17 @@ import pandas as pd
 # Visualization
 import matplotlib
 import matplotlib.pyplot as plt
-import igraph as ig
-import cairocffi as cairo
+#import igraph as ig
+#import cairocffi as cairo
 # Miscellaneous
 import time
 import os
 import numpy as np
 from tqdm import tqdm
+```
+
+```{python}
+
 ```
 
 ```{python}
@@ -533,11 +537,11 @@ def my_induced_graph(partition, graph):
         com1 = partition[node1]
         com2 = partition[node2]
         w_prec = ret.get_edge_data(com1, com2, {'weight': 0}).get('weight', 1)
-        roi_prec = ret.get_edge_data(com1, com2, {'roi': []}).get('roi', [])
+#        roi_prec = ret.get_edge_data(com1, com2, {'roi': []}).get('roi', [])
         superset_prec = ret.get_edge_data(com1, com2, {'superset': []}).get('superset', [])
         ret.add_edge(com1, com2, **{'weight': w_prec + edge_weight,
-                                    'superset': superset_prec + [edge_superset],
-                                    'roi': roi_prec + [edge_roi]}
+                                    'superset': superset_prec + [edge_superset]}
+                                   # 'roi': roi_prec + [edge_roi]}
                     )
         
     for node1, node2, datas in ret.edges(data=True):
@@ -549,14 +553,49 @@ def my_induced_graph(partition, graph):
 ```
 
 ```{python}
+def my_induced_graph(partition, graph, super_map):
+    """
+    super_map is dictionary 'name': value
+    """
+    ret = nx.Graph()
+    ret.add_nodes_from(partition.values())
+   
+    for node1, node2, datas in graph.edges(data=True):
+        super_vec =  np.zeros( len(super_map) )
+        edge_weight = datas.get('weight', 1)
+        edge_superset = datas.get('superset', None)
+        
+        com1 = partition[node1]
+        com2 = partition[node2]
+        w_prec = ret.get_edge_data(com1, com2, {'weight': 0}).get('weight', 1)
+        superset_prec = ret.get_edge_data(com1, com2, {'superset': super_vec}).get('superset', super_vec)
+        super_vec[super_map[edge_superset]-1] += 1
+        
+        ret.add_edge(com1, com2, **{'weight': w_prec + edge_weight,
+                                   'superset': superset_prec + super_vec} )
+
+    inv_map = {v-1: k for k, v in super_map.items()} # 'value' : name    
+    for node1, node2, datas in ret.edges(data=True):
+        s = ret[node1][node2]['superset']
+        s = inv_map[ np.argmax(s) ]
+        ret[node1][node2]['superset'] = s
+    
+    return ret
+```
+
+```{python}
 class ClusterGrainer():
-    def __init__(self, graph, n_clusters, preserve_roi=False):
+    def __init__(self, graph, n_clusters, preserve_roi=False, supermap = None):
         self.G = graph
         self.adj = nx.adjacency_matrix(self.G).todense()
         self.nodes = np.array([n for n in self.G.nodes()])
         self.clusterer = AgglomerativeClustering(n_clusters=n_clusters, affinity= 'precomputed', 
                                                  connectivity =np.sign(self.adj), linkage='single')
         self.preserve_roi = preserve_roi
+        if self.preserve_roi and supermap:
+            self.supermap = supermap
+        else:
+            print('Error!')
         # Statistics
         degree = sorted([d for n, d in self.G.degree()], reverse=True)
         avg_degree_con = nx.average_degree_connectivity(self.G)
@@ -576,14 +615,14 @@ class ClusterGrainer():
     def zip_graph(self, partitions, inplace=True):
         if inplace:
             if(self.preserve_roi):
-                self.G = my_induced_graph(partitions, self.G)
+                self.G = my_induced_graph(partitions, self.G, self.supermap)
             else:
                 self.G = induced_graph(partitions, self.G)
             self.adj = nx.adjacency_matrix(self.G).todense()
             self.nodes = np.array([n for n in self.G.nodes()])
         else:
             if self.preserve_roi:
-                return my_induced_graph(partitions, self.G)
+                return my_induced_graph(partitions, self.G, self.supermap)
             else:
                 return induced_graph(partitions, self.G)
         
@@ -651,7 +690,7 @@ class ClusterGrainer():
 g = graph.copy()
 #graph.add_nodes_from(neurons_dataframe['bodyId'])
 #graph.add_edges_from(synapses_dataframe['synaps'])
-Grainer = ClusterGrainer(g, 10000, preserve_roi=True)
+Grainer = ClusterGrainer(g, 10000, preserve_roi=True, supermap=roi_supersets)
 ```
 
 ### Upload metric from pickle
@@ -666,10 +705,7 @@ metric = 1/weight_metric
 ```
 
 ```{python}
-start = time.time()
 Grainer.experiment([clusters[5]], metric)
-end = time.time()
-print(f"Time needed {end_time-start_time}")
 ```
 
 ```{python}
