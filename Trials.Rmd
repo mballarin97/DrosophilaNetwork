@@ -672,7 +672,7 @@ Grainer = ClusterGrainer(g, 10000, preserve_roi=True, supermap=roi_supersets)
 ### Upload metric from pickle
 
 ```{python}
-clusters = np.arange(19000, 0, -1000)
+clusters = np.arange(20000, 0, -500)
 weight_metric = np.load('exported-traced-adjacencies/pagerank_computed.npy', allow_pickle=True)
 ```
 
@@ -700,8 +700,8 @@ con_distr_density = Grainer.con_distr_density
 ```
 
 ```{python}
-con_distr_bins = np.load('bins.npy')
-con_distr_density = np.load('density.npy')
+#con_distr_bins = np.load('bins.npy')
+#con_distr_density = np.load('density.npy')
 ```
 
 ```{python}
@@ -749,32 +749,59 @@ for i in range(1, len(r_clusters)):
 ```
 
 ```{python}
+plt.plot(con_distr_bins[0])
+```
+
+```{python}
+np.argmax(con_distr_density)
+```
+
+```{python}
 from matplotlib.animation import FuncAnimation
 class Animate:
-    def __init__(self, bins, distribution):
+    def __init__(self, bins, distribution, clusters):
         self.fig , self.ax = plt.subplots( figsize=(12,8))
+        self.ax.set_xlabel('Average degree connectivity', fontsize=16)
+        self.ax.set_title("Average degree connectivity distribution", fontsize=20)
+        self.ax.set_ylabel('Probability', fontsize=16)
+        #self.ax.set_ylim([0, 0.04])#np.max(distribution)])
         # Parameters
+        self.clusters = clusters
         self.distribution = distribution
         self.bins = bins
+        self.width = (bins[:,1] - bins[:,0])
         self.center = (bins[:,:-1]+bins[:,1:])/2
-        print(self.center.shape)
-        print(self.distribution.shape)
-        self.im = self.ax.bar(self.center[0,:], self.distribution[0,:], alpha=0.7)
-        self.moving = self.ax.bar(self.center[1,:], self.distribution[1,:], alpha=0.7)
+        self.im = self.ax.bar(self.center[0,:], self.distribution[0,:], width=self.width[0],
+                              label='Original: 21733', color='royalblue')
+        self.moving = self.ax.bar(self.center[1,:], self.distribution[1,:], width=self.width[1], alpha=0.7, 
+                                  label=f'Number of neurons: {self.clusters[0]}', color='limegreen')
+        self.legend = self.ax.legend()
     
     def _update(self, i):
-        w = self.distribution[i]
-        self.moving.set_height(w)
-        #self.im.set_array( self.sys.reshape(25, 20) )
+        if i<len(self.distribution)-1:
+            curr = self.distribution[i+1]
+            for s, c, cent in zip(self.moving, curr, self.center[i+1]):
+                s.set_height(c)
+                s.set_width(self.width[i+1])
+                s.set_x(cent)
+                self.legend.texts[1].set_text(f'Number of neurons: {self.clusters[i]}')
+                self.ax.set_ylim([0, np.max(curr)+np.max(curr)/10])
+        else:
+            curr = self.distribution[-1]
+            for s, c, cent in zip(self.moving, curr, self.center[-1]):
+                s.set_height(c)
+                s.set_width(self.width[-1])
+                s.set_x(cent) 
+                self.legend.texts[1].set_text(f'Number of neurons: {self.clusters[-1]}')
         
-    def sys_anim(self, frames=100, interval=100):
-        self.anim = FuncAnimation(self.fig, self._update, frames=5, interval=interval)
-        self.anim.save('prova.mp4')
+    def sys_anim(self, interval=100):
+        self.anim = FuncAnimation(self.fig, self._update, frames=len(self.clusters)+2, interval=interval)
+        self.anim.save('prova.gif')
 ```
 
 ```{python}
 anim = Animate(con_distr_bins, con_distr_density)
-anim.sys_anim()
+anim.sys_anim(interval=800)
 ```
 
 ```{python}
