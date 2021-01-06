@@ -690,10 +690,11 @@ class ClusterGrainer():
 
 ```{python}
 g = graph.copy()
-#graph.add_nodes_from(neurons_dataframe['bodyId'])
-#graph.add_edges_from(synapses_dataframe['synaps'])
-Grainer = ClusterGrainer(g, 10000, preserve_roi=True, supermap=None)
-#Grainer = ClusterGrainer(g, 10000, preserve_roi=True, supermap=roi_supersets)
+
+# following correctly raise error
+# Grainer = ClusterGrainer(g, 10000, preserve_roi=True, supermap=None)
+# following correctly works
+Grainer = ClusterGrainer(g, 10000, preserve_roi=True, supermap=roi_supersets)
 ```
 
 ### Upload metric from pickle
@@ -708,11 +709,15 @@ metric = 1/weight_metric
 ```
 
 ```{python}
-Grainer.experiment([clusters[5]], metric)
+if not PATIENCE:
+    Grainer.experiment(clusters[5:8], metric)
+    sizes = np.insert([clusters[5:8]], 0, graph.number_of_nodes())
+else:
+    Grainer.experiment(clusters, metric)
+    sizes = np.insert(clusters, 0, graph.number_of_nodes())    
 ```
 
 ```{python}
-sizes = np.insert(clusters, 0, graph.number_of_nodes())
 Grainer.plot_stats(sizes)
 ```
 
