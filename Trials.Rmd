@@ -706,9 +706,13 @@ default_center = (default_bins[:-1] + default_bins[1:]) / 2
 
 alfa = 1  # width parameter, keep 1 to superimpose bar plots
 print(len(clusters))
-for i in range(0, len(r_clusters)):
+for i in range(1, len(r_clusters)):
     ax = plt.subplot(111, label=str(i))
-    
+
+    # original values
+    #ax.bar(default_center, default_density, align='center', width=width)
+    ax.bar(default_center, default_density, width=width)
+
     # current values
     bins = Grainer.con_distr_bins[i]
     hist = Grainer.con_distr_density[i]
@@ -716,11 +720,7 @@ for i in range(0, len(r_clusters)):
     center = (bins[:-1] + bins[1:]) / 2
     # ax.bar(center, hist, align='center', width=width)
     ax.bar(center, hist, width=width)
-
-    # original values
-    #ax.bar(default_center, default_density, align='center', width=width)
-    ax.bar(default_center, default_density, width=width)
-
+    
     # previous values
     #bins = Grainer.con_distr_bins[i-1]
     #hist = Grainer.con_distr_density[i-1]
