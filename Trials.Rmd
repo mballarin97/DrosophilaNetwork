@@ -586,16 +586,18 @@ def my_induced_graph(partition, graph, super_map):
 ```{python}
 class ClusterGrainer():
     def __init__(self, graph, n_clusters, preserve_roi=False, supermap = None):
+        
+        self.preserve_roi = preserve_roi
+        if self.preserve_roi and (supermap is not None):
+            self.supermap = supermap
+        elif self.preserve_roi and (supermap is None):
+            raise ValueError("Param 'preserve_roi' is True but 'supermap' has not been defined")
+        
         self.G = graph
         self.adj = nx.adjacency_matrix(self.G).todense()
         self.nodes = np.array([n for n in self.G.nodes()])
         self.clusterer = AgglomerativeClustering(n_clusters=n_clusters, affinity= 'precomputed', 
                                                  connectivity =np.sign(self.adj), linkage='single')
-        self.preserve_roi = preserve_roi
-        if self.preserve_roi and supermap:
-            self.supermap = supermap
-        else:
-            print('Error!')
         # Statistics
         degree = sorted([d for n, d in self.G.degree()], reverse=True)
         avg_degree_con = nx.average_degree_connectivity(self.G)
@@ -690,7 +692,8 @@ class ClusterGrainer():
 g = graph.copy()
 #graph.add_nodes_from(neurons_dataframe['bodyId'])
 #graph.add_edges_from(synapses_dataframe['synaps'])
-Grainer = ClusterGrainer(g, 10000, preserve_roi=True, supermap=roi_supersets)
+Grainer = ClusterGrainer(g, 10000, preserve_roi=True, supermap=None)
+#Grainer = ClusterGrainer(g, 10000, preserve_roi=True, supermap=roi_supersets)
 ```
 
 ### Upload metric from pickle
