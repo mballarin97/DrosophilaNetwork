@@ -700,6 +700,11 @@ con_distr_density = Grainer.con_distr_density
 ```
 
 ```{python}
+con_distr_bins = np.load('bins.npy')
+con_distr_density = np.load('density.npy')
+```
+
+```{python}
 default_bins = Grainer.con_distr_bins[0]
 default_density = Grainer.con_distr_density[0]
 default_center = (default_bins[:-1] + default_bins[1:]) / 2
@@ -711,15 +716,18 @@ for i in range(1, len(r_clusters)):
 
     # original values
     #ax.bar(default_center, default_density, align='center', width=width)
-    ax.bar(default_center, default_density, width=width)
+    ax.bar(default_center, default_density, width=width, alpha=0.7)
 
     # current values
     bins = Grainer.con_distr_bins[i]
     hist = Grainer.con_distr_density[i]
     width = alfa * (bins[1] - bins[0])
     center = (bins[:-1] + bins[1:]) / 2
+    print(center.shape)
+    print(bins.shape)
+    print(hist.shape)
     # ax.bar(center, hist, align='center', width=width)
-    ax.bar(center, hist, width=width)
+    ax.bar(center, hist, width=width, alpha=0.7)
     
     # previous values
     #bins = Grainer.con_distr_bins[i-1]
@@ -732,13 +740,41 @@ for i in range(1, len(r_clusters)):
     # legend
     #ax.legend(['original', f'it. {i}', f'it {i-1}'])
     ax.legend(['original', f'it. {i}'])
+    ax.set_title("Average degree connectivity distribution")
+    ax.set_xlabel("Average degree connectivity for degree k")
+
 
     plt.show()
 
 ```
 
 ```{python}
+from matplotlib.animation import FuncAnimation
+class Animate:
+    def __init__(self, bins, distribution):
+        self.fig , self.ax = plt.subplots( figsize=(12,8))
+        # Parameters
+        self.distribution = distribution
+        self.bins = bins
+        self.center = (bins[:,:-1]+bins[:,1:])/2
+        print(self.center.shape)
+        print(self.distribution.shape)
+        self.im = self.ax.bar(self.center[0,:], self.distribution[0,:], alpha=0.7)
+        self.moving = self.ax.bar(self.center[1,:], self.distribution[1,:], alpha=0.7)
+    
+    def _update(self, i):
+        w = self.distribution[i]
+        self.moving.set_height(w)
+        #self.im.set_array( self.sys.reshape(25, 20) )
+        
+    def sys_anim(self, frames=100, interval=100):
+        self.anim = FuncAnimation(self.fig, self._update, frames=5, interval=interval)
+        self.anim.save('prova.mp4')
+```
 
+```{python}
+anim = Animate(con_distr_bins, con_distr_density)
+anim.sys_anim()
 ```
 
 ```{python}
