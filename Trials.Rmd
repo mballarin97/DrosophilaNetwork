@@ -663,7 +663,7 @@ class ClusterGrainer():
 ```{python}
 g = graph.copy()
 
-# following correctly raise error
+# following correctly raises error
 # Grainer = ClusterGrainer(g, 10000, preserve_roi=True, supermap=None)
 # following correctly works
 Grainer = ClusterGrainer(g, 10000, preserve_roi=True, supermap=roi_supersets)
@@ -682,11 +682,12 @@ metric = 1/weight_metric
 
 ```{python}
 if not PATIENCE:
-    Grainer.experiment(clusters[5:8], metric)
-    sizes = np.insert([clusters[5:8]], 0, graph.number_of_nodes())
+    r_clusters = clusters[1:4]
 else:
-    Grainer.experiment(clusters, metric)
-    sizes = np.insert(clusters, 0, graph.number_of_nodes())    
+    r_clusters = clusters
+        
+Grainer.experiment(r_clusters, metric)
+sizes = np.insert(r_clusters, 0, graph.number_of_nodes())
 ```
 
 ```{python}
@@ -699,31 +700,40 @@ con_distr_density = Grainer.con_distr_density
 ```
 
 ```{python}
-ax = plt.subplot(111)
+default_bins = Grainer.con_distr_bins[0]
+default_density = Grainer.con_distr_density[0]
+default_center = (default_bins[:-1] + default_bins[1:]) / 2
+
 alfa = 1  # width parameter, keep 1 to superimpose bar plots
+print(len(clusters))
+for i in range(0, len(r_clusters)):
+    ax = plt.subplot(111, label=str(i))
+    
+    # current values
+    bins = Grainer.con_distr_bins[i]
+    hist = Grainer.con_distr_density[i]
+    width = alfa * (bins[1] - bins[0])
+    center = (bins[:-1] + bins[1:]) / 2
+    # ax.bar(center, hist, align='center', width=width)
+    ax.bar(center, hist, width=width)
 
-bins = con_distr_bins[0]
-hist = con_distr_density[0]
-width = alfa * (bins[1] - bins[0])
-center = (bins[:-1] + bins[1:]) / 2
-ax.bar(center, hist, align='center', width=width)
+    # original values
+    #ax.bar(default_center, default_density, align='center', width=width)
+    ax.bar(default_center, default_density, width=width)
 
-bins = con_distr_bins[1]
-hist = con_distr_density[1]
-width = alfa * (bins[1] - bins[0])
-center = (bins[:-1] + bins[1:]) / 2
-ax.bar(center, hist, align='center', width=width)
+    # previous values
+    #bins = Grainer.con_distr_bins[i-1]
+    #hist = Grainer.con_distr_density[i-1]
+    #width = alfa * (bins[1] - bins[0])
+    #center = (bins[:-1] + bins[1:]) / 2
+    # ax.bar(center, hist, align='center', width=width)
+    #ax.bar(center, hist, width=width)
+    
+    # legend
+    #ax.legend(['original', f'it. {i}', f'it {i-1}'])
+    ax.legend(['original', f'it. {i}'])
 
-bins = con_distr_bins[2]
-hist = con_distr_density[2]
-width = alfa * (bins[1] - bins[0])
-center = (bins[:-1] + bins[1:]) / 2
-ax.bar(center, hist, align='center', width=width)
-
-plt.legend(['original', 'iteration 1', 'iteration 2'])
-```
-
-```{python}
+    plt.show()
 
 ```
 
