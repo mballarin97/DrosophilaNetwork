@@ -525,34 +525,6 @@ for node1, node2, datas in graph.edges(data=True):
 ```
 
 ```{python}
-def my_induced_graph(partition, graph):
-    
-    ret = nx.Graph()
-    ret.add_nodes_from(partition.values())
-        
-    for node1, node2, datas in graph.edges(data=True):
-        edge_weight = datas.get('weight', 1)
-        edge_superset = datas.get('superset', [])
-        edge_roi = datas.get('roi', [])
-        com1 = partition[node1]
-        com2 = partition[node2]
-        w_prec = ret.get_edge_data(com1, com2, {'weight': 0}).get('weight', 1)
-#        roi_prec = ret.get_edge_data(com1, com2, {'roi': []}).get('roi', [])
-        superset_prec = ret.get_edge_data(com1, com2, {'superset': []}).get('superset', [])
-        ret.add_edge(com1, com2, **{'weight': w_prec + edge_weight,
-                                    'superset': superset_prec + [edge_superset]}
-                                   # 'roi': roi_prec + [edge_roi]}
-                    )
-        
-    for node1, node2, datas in ret.edges(data=True):
-        A = numpy.array(datas.get('superset', None))
-        c = Counter(A.flat).most_common(1)
-        d = c[0][0]
-        ret[node1][node2]['superset']=d
-    return ret
-```
-
-```{python}
 def my_induced_graph(partition, graph, super_map):
     """
     super_map is dictionary 'name': value
