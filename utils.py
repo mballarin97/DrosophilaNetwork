@@ -48,9 +48,10 @@ def read_datasets(path='exported-traced-adjacencies', prepare=True, roi_superset
         # zip synapese
         synapses_dataframe['synaps'] = list(zip(synapses_dataframe.bodyId_pre, synapses_dataframe.bodyId_post))
 
-    if os.path.exists(os.path.join(path, 'treated_roi.csv')):
-        roi_dataframe = pd.read_csv(os.path.join(path, 'treated_roi.csv'))
-    else:
+    #if os.path.exists(os.path.join(path, 'treated_roi.csv')):
+    #    roi_dataframe = pd.read_csv(os.path.join(path, 'treated_roi.csv'))
+    #else:
+    if True:
         roi_dataframe = pd.read_csv(os.path.join(path, 'traced-roi-connections.csv'))
         if prepare:
             # zip synapese
