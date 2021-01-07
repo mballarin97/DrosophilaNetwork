@@ -36,10 +36,6 @@ from tqdm import tqdm
 ```
 
 ```{python}
-
-```
-
-```{python}
 # False -> avoid running time-consuming cells
 PATIENCE = False
 ```
@@ -199,10 +195,11 @@ temp = roi_dataframe.copy()
 temp['superset_number'] = map_superset_to_number(roi_dataframe['superset'].tolist())
 temp['roi_number'] = map_roi_to_number(roi_dataframe['roi'].tolist())
 
+# map the synaps superset to numeric categorical, and use it as weight
 temp['weight'] = temp['superset_number']
 links = temp[['synaps', 'roi', 'superset', 'weight']]
-#links_attr_dict_1 = links.set_index('synaps')['weight'].to_dict()
-#nx.set_edge_attributes(graph, links_attr_dict_1, 'weight')
+links_attr_dict_1 = links.set_index('synaps')['weight'].to_dict()
+nx.set_edge_attributes(graph, links_attr_dict_1, 'weight')
 ```
 
 ```{python}
@@ -249,8 +246,6 @@ if PATIENCE:
 
 
 See https://stackoverflow.com/questions/49908014/how-can-i-check-if-a-network-is-scale-free and https://pypi.org/project/powerlaw/
-
-I'm not completely sure about the parameters.
 
 ```{python}
 degree = np.array([ d for n, d in graph.degree()])
@@ -710,7 +705,7 @@ default_density = Grainer.con_distr_density[0]
 default_center = (default_bins[:-1] + default_bins[1:]) / 2
 
 alfa = 1  # width parameter, keep 1 to superimpose bar plots
-print(len(clusters))
+width = alfa * (default_bins[2] - default_bins[1])
 for i in range(1, len(r_clusters)):
     ax = plt.subplot(111, label=str(i))
 
@@ -746,14 +741,6 @@ for i in range(1, len(r_clusters)):
 
     plt.show()
 
-```
-
-```{python}
-plt.plot(con_distr_bins[0])
-```
-
-```{python}
-np.argmax(con_distr_density)
 ```
 
 ```{python}
@@ -800,7 +787,7 @@ class Animate:
 ```
 
 ```{python}
-anim = Animate(con_distr_bins, con_distr_density)
+anim = Animate(con_distr_bins, con_distr_density, r_clusters)
 anim.sys_anim(interval=800)
 ```
 
@@ -917,13 +904,6 @@ avg_degree_connectivity = nx.average_degree_connectivity(graph)
 avg_degree_connectivity = np.array([i for k,i in avg_degree_connectivity.items()])
 max_avg = np.max(avg_degree_connectivity)
 print(f"Global average degree connectivity value: {int(avg_degree_connectivity.mean())}")
-
-a = np.histogram(avg_degree_connectivity, 200) 
-plt.hist(a, bins='auto')
-plt.grid()
-plt.title("Average degree connectivity distribution")
-plt.xlabel("Average degree connectivity for degree k")
-plt.show()
 
 hist, bins = np.histogram(avg_degree_connectivity, bins=200)
 #width = 0.7 * (bins[1] - bins[0])
