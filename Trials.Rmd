@@ -621,6 +621,7 @@ class ClusterGrainer():
             new_graph = self.zip_graph(partitions, inplace=inplace)
             if save:
                 nx.readwrite.gpickle.write_gpickle(new_graph, f"graph_iter_{iteration_number}.gpickle")
+                iteration_number = iteration_number + 1
             self._upd_stats(new_graph)
     
     def plot_stats(self, sizes):
