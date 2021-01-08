@@ -199,7 +199,7 @@ temp['roi_number'] = map_roi_to_number(roi_dataframe['roi'].tolist())
 temp['weight'] = temp['superset_number']
 links = temp[['synaps', 'roi', 'superset', 'weight']]
 links_attr_dict_1 = links.set_index('synaps')['weight'].to_dict()
-nx.set_edge_attributes(graph, links_attr_dict_1, 'weight')
+# nx.set_edge_attributes(graph, links_attr_dict_1, 'weight')
 ```
 
 ```{python}
@@ -613,11 +613,14 @@ class ClusterGrainer():
         self.clusterer = AgglomerativeClustering(n_clusters=n_cl, affinity= 'precomputed', 
                                                  connectivity =np.sign(self.adj), linkage='single')
         
-    def experiment(self, n_clusters, metric_mat, inplace=False):
+    def experiment(self, n_clusters, metric_mat, inplace=False, save=False):
+        iteration_number = 1;
         for cl in tqdm(n_clusters):
             self._set_clust(cl)
             partitions = self.predict(metric_mat)
             new_graph = self.zip_graph(partitions, inplace=inplace)
+            if save:
+                nx.readwrite.gpickle.write_gpickle(new_graph, f"graph_iter_{iteration_number}.gpickle")
             self._upd_stats(new_graph)
     
     def plot_stats(self, sizes):
@@ -681,7 +684,7 @@ if not PATIENCE:
 else:
     r_clusters = clusters
         
-Grainer.experiment(r_clusters, metric)
+Grainer.experiment(r_clusters, metric, save=True)
 sizes = np.insert(r_clusters, 0, graph.number_of_nodes())
 ```
 
