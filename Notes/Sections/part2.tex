@@ -1,4 +1,12 @@
 \section{Robustness}
+There are a number of measures and techniques through which the robustness of a network can be assessed, and such assessment can be more or less meaningful. For this project, the we have decided to use the tool TIGER\footnote{available at \href{https://github.com/safreita1/TIGER}{https://github.com/safreita1/TIGER}} (\textbf{T}oolbox for evaluat\textbf{I}ng \textbf{G}raph vuln\textbf{E}rability and \textbf{R}obustness), described in \cite{freitas2020tiger}, which implements several attack and defense techniques.
 
-
-
+We already know that the Drosophila's brain is a scale-free network, and as such it enjoys the property of being quite immune to random attacks. More interesting is that this property is kept across the coarse-grained versions of the brain network. The attacks have been conducted with the following techniques:
+\begin{itemize}
+	\item First, we evaluated the random attacks. Starting from the net with 10'000 neurons, at each iteration a random neuron is removed from the graph, until 30\% of the total number of nodes is removed. The robustness measure is the dimension of the largest connected component (with respect to the unharmed network). \newline The random attack may be used to simulate a normal degrading and failure of neurons, without considering rejuvenation and creation of new neuronal paths. 
+	\item Then, a second attack has been conducted with a global strategy. The attack computes the global betweenness, and iteratively removes the neuron with highest betweenneess, again until 30\% of the total number of nodes is removed. This approach leads to the destruction of as many paths as possible. Again, the robustness measure is the largest connected component dimension.
+	\newline This attack may be used to simulate the consequences of failure of the main neuronal highways in disrupting the normal neuronal activity.
+	\item (vedemo?) a last attack is conducted by applying a cascading failure.  Consider an electrical grid where a central substation goes offline. In order to maintain the distribution of power, neighboring substations have to increase production in order to meet demand. However, if this is not possible, the neighboring substation fails, which in turn causes additional neighboring substations to fail. The end result is a series of cascading failures, i.e., a blackout.  
+	\newline This attack may be used to simulate the progressive failure of a whole neuronal region, due to heavy hits that cause brain damages, or degenerative illnesses.
+\end{itemize}
+Many more robustness measures and techniques can be applied. However, we are constrained in keeping into account the computational time needed to compute such measurements for many networks, each with a fairly large number of neurons.
