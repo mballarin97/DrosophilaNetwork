@@ -1,12 +1,21 @@
 \section{Robustness}
 There are a number of measures and techniques through which the robustness of a network can be assessed, and such assessment can be more or less meaningful. For this project, the we have decided to use the tool TIGER\footnote{available at \href{https://github.com/safreita1/TIGER}{https://github.com/safreita1/TIGER}} (\textbf{T}oolbox for evaluat\textbf{I}ng \textbf{G}raph vuln\textbf{E}rability and \textbf{R}obustness), described in \cite{freitas2020tiger}, which implements several attack and defense techniques.
 
-We already know that the Drosophila's brain is a scale-free network, and as such it enjoys the property of being quite immune to random attacks. More interesting is that this property is kept across the coarse-grained versions of the brain network. The attacks have been conducted with the following techniques:
-\begin{itemize}
-	\item First, we evaluated the random attacks. Starting from the net with 10'000 neurons, at each iteration a random neuron is removed from the graph, until 30\% of the total number of nodes is removed. The robustness measure is the dimension of the largest connected component (with respect to the unharmed network). \newline The random attack may be used to simulate a normal degrading and failure of neurons, without considering rejuvenation and creation of new neuronal paths. 
-	\item Then, a second attack has been conducted with a global strategy. The attack computes the global betweenness, and iteratively removes the neuron with highest betweenneess, again until 30\% of the total number of nodes is removed. This approach leads to the destruction of as many paths as possible. Again, the robustness measure is the largest connected component dimension.
-	\newline This attack may be used to simulate the consequences of failure of the main neuronal highways in disrupting the normal neuronal activity.
-	\item (vedemo?) a last attack is conducted by applying a cascading failure.  Consider an electrical grid where a central substation goes offline. In order to maintain the distribution of power, neighboring substations have to increase production in order to meet demand. However, if this is not possible, the neighboring substation fails, which in turn causes additional neighboring substations to fail. The end result is a series of cascading failures, i.e., a blackout.  
-	\newline This attack may be used to simulate the progressive failure of a whole neuronal region, due to heavy hits that cause brain damages, or degenerative illnesses.
-\end{itemize}
+All the attacking experiments have been conducted in a consistent manner. The \textit{Largest Connected Component} (LCC) dimension has been selected as robustness measure: a larger dimension implies a more connected network and this better robustness. Due to computational time constraints, the attacks were conducted starting from roughly half the original graph size to the coarsest graph, thus from $10500$ to $500$ neurons, with steps of $1000$ aggregated neurons. Every attack removed 30\% of the total nodes.
+
+Three attacks were considered: random attack, highest-betweenness removal attack, and cascade attack.
+
+\vspace{\baselineskip}
+\noindent \textbf{Random attack}. At each iteration a random neuron is removed from the graph. As was already known, being the Drosophila connectome a scale-free network with small-world properties, it is quite robust to random node removal. Furthermore, such robustness is kept among the graining, as can be seen in Fig. \ref{fig:rnd_atk}, where the LCC dimension decreases linearly with the number of removed nodes. 
+\newline The random attack may be used to simulate a normal degrading and failure of neurons that does not  involve rejuvenation and creation of new neuronal paths. 
+
+\vspace{\baselineskip}
+\noindent \textbf{Highest-betweenness attack}. The graph global betweenness is computed at the start, and iteratively the neuron with highest betweennees is removed. This approach leads to the destruction of as many paths as possible and, although the betweenness is computed only once and not at every iteration, it is considered a global-strategy attack, as betweenness is a measure of how much the network is aggregated. Quite surprisingly from Fig. \ref{fig:ib_atk}, the network is very robust to such attack and such robustness is kept among the graining, with an effect on the LLC dimension indistinguishable from the random attack. This may be due to the fact that the presence of more hubs and super-hubs that are created in the graining procedure is able to cope with catastrophic failures of one third of the main pathways, with neurons ``promoted'' to an higher betweenness once the neighbor is removed.
+\newline This attack may be used to simulate the consequences of failure of the main neuronal highways in disrupting the normal neuronal activity.
+	
+\vspace{\baselineskip}
+\noindent \textbf{Cascading attack}.The last attack represents a cascading failure. Let's first consider an example to have a better idea of the mechanism. Consider an electrical grid where a central substation goes offline. In order to maintain the distribution of power, neighboring substations have to increase production in order to meet demand. However, if this is not possible, the neighboring substation fails, which in turn causes additional neighboring substations to fail. The end result is a series of cascading failures, i.e., a blackout.  
+\newline This attack may be used to simulate the progressive failure of a whole neuronal region, due to heavy hits that cause brain damages, or degenerative illnesses.
+
+
 Many more robustness measures and techniques can be applied. However, we are constrained in keeping into account the computational time needed to compute such measurements for many networks, each with a fairly large number of neurons.
