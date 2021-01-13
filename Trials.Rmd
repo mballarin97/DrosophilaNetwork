@@ -37,7 +37,7 @@ from tqdm import tqdm
 
 ```{python}
 # False -> avoid running time-consuming cells
-PATIENCE = False
+PATIENCE = True
 ```
 
 ## Importing datasets
@@ -694,6 +694,10 @@ Grainer.plot_stats(sizes)
 ```
 
 ```{python}
+len(sizes)
+```
+
+```{python}
 con_distr_bins = Grainer.con_distr_bins
 con_distr_density = Grainer.con_distr_density
 ```
@@ -708,42 +712,29 @@ default_bins = Grainer.con_distr_bins[0]
 default_density = Grainer.con_distr_density[0]
 default_center = (default_bins[:-1] + default_bins[1:]) / 2
 
-alfa = 1  # width parameter, keep 1 to superimpose bar plots
-width = alfa * (default_bins[2] - default_bins[1])
-for i in range(1, len(r_clusters)):
-    ax = plt.subplot(111, label=str(i))
+def_width = (default_bins[2] - default_bins[1])
 
-    # original values
-    #ax.bar(default_center, default_density, align='center', width=width)
-    ax.bar(default_center, default_density, width=width, alpha=0.7)
-
+fig, ax = plt.subplots( figsize=(12,8))
+ax.bar(default_center, default_density, width=def_width, alpha=1, label=f'{21733} neurons')
+indexes = [5, 20, 30]
+for i in indexes:
     # current values
     bins = Grainer.con_distr_bins[i]
     hist = Grainer.con_distr_density[i]
-    width = alfa * (bins[1] - bins[0])
+    width = (bins[1] - bins[0])
     center = (bins[:-1] + bins[1:]) / 2
-    print(center.shape)
-    print(bins.shape)
-    print(hist.shape)
     # ax.bar(center, hist, align='center', width=width)
-    ax.bar(center, hist, width=width, alpha=0.7)
-    
-    # previous values
-    #bins = Grainer.con_distr_bins[i-1]
-    #hist = Grainer.con_distr_density[i-1]
-    #width = alfa * (bins[1] - bins[0])
-    #center = (bins[:-1] + bins[1:]) / 2
-    # ax.bar(center, hist, align='center', width=width)
-    #ax.bar(center, hist, width=width)
+    ax.bar(center, hist, width=width, alpha=0.6, label=f'{sizes[i]} neurons')
     
     # legend
     #ax.legend(['original', f'it. {i}', f'it {i-1}'])
-    ax.legend(['original', f'it. {i}'])
+    ax.legend()
     ax.set_title("Average degree connectivity distribution")
-    ax.set_xlabel("Average degree connectivity for degree k")
+    ax.set_ylabel("Probability")
+    ax.set_xlabel("Average degree connectivity")
 
-
-    plt.show()
+ax.set_xlim(0, 1500)
+plt.show()
 
 ```
 
@@ -840,6 +831,48 @@ visual_style["bbox"] = (500, 500)
 visual_style["margin"] = 20
 
 ig.plot(high_lvl_brain_ig, "high_lvl_brain.pdf", **visual_style, layout="kk")
+```
+
+## Outlier analysis
+
+```{python}
+out_size = 3000
+```
+
+```{python}
+Grainer._set_clust(out_size)
+partitions = Grainer.predict(metric)
+out_graph = Grainer.zip_graph(partitions, inplace=False)
+```
+
+```{python}
+degree = np.array( [ d for n, d in out_graph.degree()] )
+density_deg, bins_deg = np.histogram(degree, 200) 
+
+avg_degree_con = nx.average_degree_connectivity(out_graph)
+avg_degree_con = np.array([i for k,i in avg_degree_con.items()])
+density_con, bins_con = np.histogram(avg_degree_con, 200, density=True) 
+```
+
+```{python}
+fig, ax = plt.subplots(1, 2,  figsize=(15, 6))
+
+ax[0].loglog()
+ax[0].plot( (bins_deg[:-1]+ bins_deg[1:])/2, density_deg, 'o')
+ax[0].plot( 30000000000000*np.arange(10, 1000).astype(float)**(-5), 'r--', label = 'power law coefficient: 5' )
+ax[0].set_ylim(0.5, 500)
+ax[0].set_xlim(10, 4000)
+ax[0].set_title('Degree distribution')
+ax[0].set_xlabel('Degree')
+ax[0].set_ylabel('Frequency')
+ax[0].legend()
+
+ax[1].bar( (bins_con[:-1]+bins_con[1:])/2, density_con, width=bins_con[1]-bins_con[0])
+ax[1].set_title('Average degree connectivity distribution')
+ax[1].set_xlabel('Average degree connectivity')
+ax[1].set_ylabel('Probability')
+
+plt.show()
 ```
 
 # To do list
