@@ -16,5 +16,41 @@
   {}
 \endgroup
 
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global}
+    \entry{freitas2020tiger}{misc}{}
+      \name{author}{2}{}{%
+        {{hash=93c45d89b7328d3ab4243b528cb92b56}{%
+           family={Freitas},
+           familyi={F\bibinitperiod},
+           given={Scott},
+           giveni={S\bibinitperiod}}}%
+        {{hash=f4c4b4c06aa7b1d5c9f6c1fc6c256fa1}{%
+           family={Chau},
+           familyi={C\bibinitperiod},
+           given={Duen\bibnamedelima Horng},
+           giveni={D\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+      }
+      \strng{namehash}{249ba778d897310f88187717fc14b587}
+      \strng{fullhash}{249ba778d897310f88187717fc14b587}
+      \strng{bibnamehash}{249ba778d897310f88187717fc14b587}
+      \strng{authorbibnamehash}{249ba778d897310f88187717fc14b587}
+      \strng{authornamehash}{249ba778d897310f88187717fc14b587}
+      \strng{authorfullhash}{249ba778d897310f88187717fc14b587}
+      \field{sortinit}{F}
+      \field{sortinithash}{fb0c0faa89eb6abae8213bf60e6799ea}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{eprintclass}{cs.SI}
+      \field{eprinttype}{arXiv}
+      \field{title}{Evaluating Graph Vulnerability and Robustness using TIGER}
+      \field{year}{2020}
+      \verb{eprint}
+      \verb 2006.05648
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
 \endinput
 

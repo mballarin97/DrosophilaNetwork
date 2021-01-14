@@ -42,7 +42,7 @@ less connections than the ones needed. Another problem of this algorithm is that
 iterative algorithm and it is so really slow: at each iteration we need to compute all the 
 distances and we can eliminate only a neuron at each iteration.
 
-\subsection{Clustering aggregation}
+\subsection{Clustering aggregation \label{subsec:clust}}
 The second algorithm is simpler and more effective. We make use of a hierarchical agglomerative
 clustering technique, i.e. an algorithm that recursively merges the pair of clusters that 
 minimally increases a given linkage distance. This is really similar to the idea developed 
@@ -81,7 +81,7 @@ we are minimizing a distance in these algorithms, so strongly connected nodes wi
 nodes considered nearer. 
 \begin{enumerate}
     \item The weights, with 
-        $$d^(w)_{ij}=\frac{1}{w_{ij}}$$
+        $$d^{w}_{ij}=\frac{1}{w_{ij}}$$
         This is a really naive distance metric, and we do not expect a really good performance
         for the algorithm. However, it has the advantage of being already computed;
     \item The local page rank, with:
@@ -90,3 +90,52 @@ nodes considered nearer.
         and incoming links. We expect much better results with this metric.
 \end{enumerate}
 
+We present in this report only the results for the clustering algorithm using the local page rank
+metric. This choice has been done to keep the report readable, focusing only on the interesting
+results.
+
+\subsection{Metrics evolution}
+We will mainly focus on five different aspects to analyze along the graining procedure, shown in
+Figure \ref{fig:coarse_evol}:
+\begin{itemize}
+    \item The exponent of the degree power-law distribution $\alpha$, where $p(k)=\beta k^{-\alpha}$. We notice that, starting from a coefficient
+        of $3.6$, which is the usual one for this type of networks, we increase this coefficient up to 
+        $5.5$, where it remains almost constant. This means that the degree distribution become steeper 
+        and steeper, showing a really quick change between low-degree nodes and hubs. We are so losing 
+        the nodes “in the middle”. This is an interesting result, since it confirms what we were discussing
+        in Subsection \ref{subsec:clust}: the hubs are not destroyed by the algorithm.
+    \item The density of the network, which is defined as:
+        \begin{equation}
+            \rho^{(t)}=\frac{\# \mbox{ of edges}}{(\# \mbox{ of nodes})^2}
+        \end{equation}
+        The density of the network increases really slowly initially, but grows quickly when we 
+        reach lower number of neurons, after $5000$. This behavior is sensible, since we are really
+        zipping the graph structure at these stages, and when the number of neurons goes to $0$ also
+        the number of edges does so, i.e.:
+        $$
+        \lim_{N'\rightarrow 0} \rho = 1
+        $$
+    \item The average degree. In this case the actual average is not the more informative measure. It is really more 
+        significant its standard deviation. We can indeed see that the variance of the degree is decreasing 
+        along our graining, as we have already understood for the power-law distribution. 
+    \item The average degree connectivity, which gives a measure of how much 
+        the neighbors of a node with a given degree are connected. We see that, after an initial 
+        increase it linearly decreases, with some fluctuation in the variance. This graph is the hardest to
+        interpret, and we will so analyze more in detail the average degree connectivity distribution in the 
+        following.
+\end{itemize}
+However, in all the measures analyzed we can point out an outlier, with $3000$ neurons. 
+We so plot in Figure \ref{fig:n3000} the degree distribution and the degree connectivity distribution in this case.
+We can see an anomalous peak in the degree distribution, which fools the automatic computation of the 
+power law degree coefficient, but we can clearly observe that the distribution follows the distribution
+with coefficient $\alpha=-5$. The degree connectivity distribution follows instead an interesting bimodal
+distribution.
+
+We then show the evolution of the degree connectivity distribution, in Figure \ref{fig:con_distr}.
+We see that the first hint of the bimodal distribution at $10500$ neurons, and it becomes then more 
+visible, as we have also seen in Figure \ref{fig:n3000}. This is again due to the coarse graining, which
+removes the nodes that are in the middle from the degree point of view, dividing the network in hubs
+and lowly connected nodes.
+
+We have finally understood, from many metrics, the effect of the coarse graining on the network structure:
+the elimination of the nodes in the middle.

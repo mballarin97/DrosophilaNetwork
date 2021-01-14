@@ -1,5 +1,12 @@
 \BOOKMARK [1][-]{section.1}{Introduction }{}% 1
-\BOOKMARK [1][-]{section.2}{Drosophila brain regions}{}% 2
-\BOOKMARK [1][-]{section.3}{Coarse graining}{}% 3
-\BOOKMARK [2][-]{subsection.3.1}{Random aggregation}{section.3}% 4
-\BOOKMARK [2][-]{subsection.3.2}{Clustering aggregation}{section.3}% 5
+\BOOKMARK [1][-]{section.2}{Coarse graining}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Random aggregation}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Clustering aggregation }{section.2}% 4
+\BOOKMARK [2][-]{subsection.2.3}{Metrics evolution}{section.2}% 5
+\BOOKMARK [1][-]{section.3}{Robustness}{}% 6
+\BOOKMARK [2][-]{subsection.3.1}{Random attack}{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.2}{Highest-betweenness attack}{section.3}% 8
+\BOOKMARK [2][-]{subsection.3.3}{Cascading attack}{section.3}% 9
+\BOOKMARK [1][-]{section.4}{Communities}{}% 10
+\BOOKMARK [2][-]{subsection.4.1}{Community detection}{section.4}% 11
+\BOOKMARK [1][-]{section.5}{Appendix}{}% 12
