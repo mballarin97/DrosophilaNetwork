@@ -14,6 +14,9 @@ jupyter:
 ---
 
 ```{python}
+import utils
+import powerlaw 
+
 # Network analysis
 import networkx as nx
 from scipy import sparse
@@ -23,17 +26,18 @@ import pandas as pd
 # Visualization
 import matplotlib
 import matplotlib.pyplot as plt
-import igraph as ig
-import cairocffi as cairo
+#import igraph as ig
+#import cairocffi as cairo
 # Miscellaneous
 import time
 import os
 import numpy as np
+from tqdm import tqdm
 ```
 
 ```{python}
 # False -> avoid running time-consuming cells
-PATIENCE = False
+PATIENCE = True
 ```
 
 ## Importing datasets
@@ -44,9 +48,7 @@ PATIENCE = False
 https://asajadi.github.io/fast-pagerank/
 
 ```{python}
-neurons_dataframe = pd.read_csv('exported-traced-adjacencies/traced-neurons.csv')
-synapses_dataframe = pd.read_csv('exported-traced-adjacencies/traced-total-connections.csv')
-roi_dataframe = pd.read_csv('exported-traced-adjacencies/traced-roi-connections.csv')
+neurons_dataframe, synapses_dataframe, roi_dataframe = utils.read_datasets()
 ```
 
 ```{python}
@@ -54,49 +56,21 @@ neurons_dataframe.head()
 ```
 
 ```{python}
-# add link as 2-tuple between neurons bodyId
-synapses_dataframe['synaps'] = list(zip(synapses_dataframe.bodyId_pre, synapses_dataframe.bodyId_post))
+
 print(synapses_dataframe.head())
 print(f"Number of unique synapses: {synapses_dataframe['synaps'].nunique()}")
 print(f"Length of synapses dataset: {len(synapses_dataframe)}")
 # NOTE: the weight of the synapses dataset is the sum of all the weights from the ROI
 ```
 
+```{python}
+
+```
+
 #### Hemibrain regions of interest
 
 ```{python}
-roi_dataframe['synaps'] = list(zip(roi_dataframe.bodyId_pre, roi_dataframe.bodyId_post))
-cols = list(roi_dataframe.columns)  # to use later
-print(roi_dataframe.head())
-print(f"Number of unique synapses: {roi_dataframe['synaps'].nunique()}")
-print(f"Length of ROI dataset: {len(roi_dataframe)}")
-print(f"Difference: {len(roi_dataframe) - roi_dataframe['synaps'].nunique()}")
-```
 
-```{python}
-roi = roi_dataframe.to_numpy()
-indexes_to_delete = []
-out_index = 0
-hhh = 0
-
-start_time = time.time()
-
-while out_index < len(roi_dataframe):
-    j = 1
-    while(out_index+j < len(roi_dataframe) and roi[out_index][4] == roi[out_index + j][4]):
-        indexes_to_delete.append(out_index+j)
-        j = j + 1
-    out_index = out_index + j
-
-roi = np.delete(roi, obj=indexes_to_delete, axis=0)
-
-end_time = time.time()
-print("Total time: {:.2f} seconds".format((end_time - start_time)))
-```
-
-```{python}
-roi_dataframe = pd.DataFrame(roi, columns=list(roi_dataframe.columns))
-print(roi_dataframe.head())
 
 # sanity check
 assert roi_dataframe['synaps'].nunique() == len(roi_dataframe)
@@ -120,15 +94,7 @@ roi_supersets = {
     'NotPrimary': ['NotPrimary']
 }
 
-def map_roi_to_superset(links):
-    def find_attr(roi):
-        for key, value in roi_supersets.items():
-            if roi in value:
-                return key
-    res = list(map(find_attr, links))
-    return res
-
-roi_dataframe['superset'] = map_roi_to_superset(roi_dataframe['roi'].tolist())
+#roi_dataframe['superset'] = utils.map_roi_to_superset(roi_dataframe['roi'].tolist(), roi_supersets)
 roi_dataframe.head()
 ```
 
@@ -142,11 +108,7 @@ for elem in roi:
             removed.append(elem)
 remains = [x for x in roi if x not in removed]
 print(f"Non-included sections: {remains}")
-```
 
-```{python}
-if not os.path.exists(os.path.join("exported-traced-adjacencies", "treated_roi.csv")):
-    roi_dataframe.to_csv(os.path.join("exported-traced-adjacencies", "treated_roi.csv"))
 ```
 
 ## Graph
@@ -163,6 +125,13 @@ links_attr_dict_3 = links.set_index('synaps')['weight'].to_dict()
 ```
 
 ```{python}
+
+print((roi_dataframe['synaps'][0]))
+print(type(roi_dataframe['synaps'][0]))
+```
+
+```{python}
+
 graph = nx.Graph()
 
 graph.add_nodes_from(neurons_dataframe['bodyId'])
@@ -226,10 +195,13 @@ temp = roi_dataframe.copy()
 temp['superset_number'] = map_superset_to_number(roi_dataframe['superset'].tolist())
 temp['roi_number'] = map_roi_to_number(roi_dataframe['roi'].tolist())
 
+
+# map the synaps superset to numeric categorical, and use it as weight
 temp['weight'] = temp['superset_number']
 links = temp[['synaps', 'roi', 'superset', 'weight']]
 links_attr_dict_1 = links.set_index('synaps')['weight'].to_dict()
-nx.set_edge_attributes(graph, links_attr_dict_1, 'weight')
+# nx.set_edge_attributes(graph, links_attr_dict_1, 'weight')
+
 ```
 
 ```{python}
@@ -277,8 +249,6 @@ if PATIENCE:
 
 See https://stackoverflow.com/questions/49908014/how-can-i-check-if-a-network-is-scale-free and https://pypi.org/project/powerlaw/
 
-I'm not completely sure about the parameters.
-
 ```{python}
 degree = np.array([ d for n, d in graph.degree()])
 print(degree.mean())
@@ -289,7 +259,6 @@ print(degree.mean())
 # reverse = True to have the cumulative distribution
 degree_sequence = sorted([d for n, d in graph.degree()], reverse=True) 
 # Power laws are probability distributions with the form:p(x)∝x−α
-import powerlaw 
 # NOTE: xmin is the data value beyond which distributions should be fitted. 
 # If None an optimal one will be calculated
 fit = powerlaw.Fit(degree_sequence) 
@@ -493,6 +462,7 @@ print("Total time: {:.2f} seconds".format((end_time - start_time)))
 coarse.plot_stat()
 ```
 
+
 ```{python}
 d = np.array( coarse.density[0:-1:200] )
 plt.plot(d)
@@ -539,11 +509,60 @@ plt.show()
 ```{python}
 from community import induced_graph
 from sklearn.cluster import AgglomerativeClustering
+from collections import Counter
+```
+
+```{python}
+for node1, node2, datas in graph.edges(data=True):
+    A = np.array(datas.get('superset', None))
+    c = Counter(A.flat).most_common(1)
+    d = c
+    print(d)
+    break
+    #ret[node1, node2]
+```
+
+```{python}
+def my_induced_graph(partition, graph, super_map):
+    """
+    super_map is dictionary 'name': value
+    """
+    ret = nx.Graph()
+    ret.add_nodes_from(partition.values())
+   
+    for node1, node2, datas in graph.edges(data=True):
+        super_vec =  np.zeros( len(super_map) )
+        edge_weight = datas.get('weight', 1)
+        edge_superset = datas.get('superset', None)
+        
+        com1 = partition[node1]
+        com2 = partition[node2]
+        w_prec = ret.get_edge_data(com1, com2, {'weight': 0}).get('weight', 1)
+        superset_prec = ret.get_edge_data(com1, com2, {'superset': super_vec}).get('superset', super_vec)
+        super_vec[super_map[edge_superset]-1] += 1
+        
+        ret.add_edge(com1, com2, **{'weight': w_prec + edge_weight,
+                                   'superset': superset_prec + super_vec} )
+
+    inv_map = {v-1: k for k, v in super_map.items()} # 'value' : name    
+    for node1, node2, datas in ret.edges(data=True):
+        s = ret[node1][node2]['superset']
+        s = inv_map[ np.argmax(s) ]
+        ret[node1][node2]['superset'] = s
+    
+    return ret
 ```
 
 ```{python}
 class ClusterGrainer():
-    def __init__(self, graph, n_clusters):
+    def __init__(self, graph, n_clusters, preserve_roi=False, supermap = None):
+        
+        self.preserve_roi = preserve_roi
+        if self.preserve_roi and (supermap is not None):
+            self.supermap = supermap
+        elif self.preserve_roi and (supermap is None):
+            raise ValueError("Param 'preserve_roi' is True but 'supermap' has not been defined")
+        
         self.G = graph
         self.adj = nx.adjacency_matrix(self.G).todense()
         self.nodes = np.array([n for n in self.G.nodes()])
@@ -556,21 +575,28 @@ class ClusterGrainer():
         fit = powerlaw.Fit(degree) 
         self.avg_deg = np.array( [np.mean(degree), np.std(degree)]  )
         self.avg_deg_con =  np.array( [int(avg_degree_con.mean()), avg_degree_con.std()] )
+        self.con_distr_density, self.con_distr_bins = np.histogram(avg_degree_con, 200, density=True)   # returns 2-tuple (density, edges)
         self.power_law = np.array( [fit.alpha, fit.sigma] )
         self.density = np.array(self.G.number_of_edges()/self.G.number_of_nodes()**2 )
         
     def predict(self, metric_mat):
         clusts = self.clusterer.fit_predict(metric_mat)
-        part = {n :  c for n, c in zip(self.nodes, clusts) }
-        return part
+        partition = { n : c for n, c in zip(self.nodes, clusts) }
+        return partition
     
     def zip_graph(self, partitions, inplace=True):
         if inplace:
-            self.G = induced_graph(partitions, self.G)
+            if(self.preserve_roi):
+                self.G = my_induced_graph(partitions, self.G, self.supermap)
+            else:
+                self.G = induced_graph(partitions, self.G)
             self.adj = nx.adjacency_matrix(self.G).todense()
             self.nodes = np.array([n for n in self.G.nodes()])
         else:
-            return induced_graph(partitions, self.G)
+            if self.preserve_roi:
+                return my_induced_graph(partitions, self.G, self.supermap)
+            else:
+                return induced_graph(partitions, self.G)
         
     def _upd_stats(self, graph ):
         degree = sorted([d for n, d in graph.degree()], reverse=True)
@@ -580,6 +606,9 @@ class ClusterGrainer():
         
         self.avg_deg = np.vstack( (self.avg_deg, [np.mean(degree), np.std(degree)])  )
         self.avg_deg_con = np.vstack( (self.avg_deg_con, [int(avg_degree_con.mean()), avg_degree_con.std()] ))
+        temp_density, temp_bins = np.histogram(avg_degree_con, 200, density=True) 
+        self.con_distr_density = np.vstack( (self.con_distr_density, temp_density) )
+        self.con_distr_bins = np.vstack( (self.con_distr_bins, temp_bins) )
         self.power_law = np.vstack( (self.power_law, [fit.alpha, fit.sigma]) )
         self.density = np.append( self.density, graph.number_of_edges()/graph.number_of_nodes()**2 )
         
@@ -587,11 +616,15 @@ class ClusterGrainer():
         self.clusterer = AgglomerativeClustering(n_clusters=n_cl, affinity= 'precomputed', 
                                                  connectivity =np.sign(self.adj), linkage='single')
         
-    def experiment(self, n_clusters, metric_mat, inplace=False):
+    def experiment(self, n_clusters, metric_mat, inplace=False, save=False):
+        iteration_number = 1;
         for cl in tqdm(n_clusters):
             self._set_clust(cl)
             partitions = self.predict(metric_mat)
             new_graph = self.zip_graph(partitions, inplace=inplace)
+            if save:
+                nx.readwrite.gpickle.write_gpickle(new_graph, f"graph_iter_{iteration_number}.gpickle")
+                iteration_number = iteration_number + 1
             self._upd_stats(new_graph)
     
     def plot_stats(self, sizes):
@@ -630,16 +663,18 @@ class ClusterGrainer():
 ```
 
 ```{python}
-graph = nx.Graph()
-graph.add_nodes_from(neurons_dataframe['bodyId'])
-graph.add_edges_from(synapses_dataframe['synaps'])
-Grainer = ClusterGrainer(graph, 10000)
+g = graph.copy()
+
+# following correctly raises error
+# Grainer = ClusterGrainer(g, 10000, preserve_roi=True, supermap=None)
+# following correctly works
+Grainer = ClusterGrainer(g, 10000, preserve_roi=True, supermap=roi_supersets)
 ```
 
 ### Upload metric from pickle
 
 ```{python}
-clusters = np.arange(19000, 0, -1000)
+clusters = np.arange(20000, 0, -500)
 weight_metric = np.load('exported-traced-adjacencies/pagerank_computed.npy', allow_pickle=True)
 ```
 
@@ -648,19 +683,110 @@ metric = 1/weight_metric
 ```
 
 ```{python}
-Grainer.experiment(clusters, metric)
+if not PATIENCE:
+    r_clusters = clusters[1:4]
+else:
+    r_clusters = clusters
+        
+Grainer.experiment(r_clusters, metric, save=True)
+sizes = np.insert(r_clusters, 0, graph.number_of_nodes())
 ```
 
 ```{python}
-sizes = np.insert(clusters, 0, graph.number_of_nodes())
 Grainer.plot_stats(sizes)
 ```
 
 ```{python}
+len(sizes)
+```
+
+```{python}
+con_distr_bins = Grainer.con_distr_bins
+con_distr_density = Grainer.con_distr_density
+```
+
+```{python}
+#con_distr_bins = np.load('bins.npy')
+#con_distr_density = np.load('density.npy')
+```
+
+```{python}
+default_bins = Grainer.con_distr_bins[0]
+default_density = Grainer.con_distr_density[0]
+default_center = (default_bins[:-1] + default_bins[1:]) / 2
+
+def_width = (default_bins[2] - default_bins[1])
+
+fig, ax = plt.subplots( figsize=(12,8))
+ax.bar(default_center, default_density, width=def_width, alpha=1, label=f'{21733} neurons')
+indexes = [5, 20, 30]
+for i in indexes:
+    # current values
+    bins = Grainer.con_distr_bins[i]
+    hist = Grainer.con_distr_density[i]
+    width = (bins[1] - bins[0])
+    center = (bins[:-1] + bins[1:]) / 2
+    # ax.bar(center, hist, align='center', width=width)
+    ax.bar(center, hist, width=width, alpha=0.6, label=f'{sizes[i]} neurons')
+    
+    # legend
+    #ax.legend(['original', f'it. {i}', f'it {i-1}'])
+    ax.legend()
+    ax.set_title("Average degree connectivity distribution")
+    ax.set_ylabel("Probability")
+    ax.set_xlabel("Average degree connectivity")
+
+ax.set_xlim(0, 1500)
+plt.show()
 
 ```
 
 ```{python}
+from matplotlib.animation import FuncAnimation
+class Animate:
+    def __init__(self, bins, distribution, clusters):
+        self.fig , self.ax = plt.subplots( figsize=(12,8))
+        self.ax.set_xlabel('Average degree connectivity', fontsize=16)
+        self.ax.set_title("Average degree connectivity distribution", fontsize=20)
+        self.ax.set_ylabel('Probability', fontsize=16)
+        #self.ax.set_ylim([0, 0.04])#np.max(distribution)])
+        # Parameters
+        self.clusters = clusters
+        self.distribution = distribution
+        self.bins = bins
+        self.width = (bins[:,1] - bins[:,0])
+        self.center = (bins[:,:-1]+bins[:,1:])/2
+        self.im = self.ax.bar(self.center[0,:], self.distribution[0,:], width=self.width[0],
+                              label='Original: 21733', color='royalblue')
+        self.moving = self.ax.bar(self.center[1,:], self.distribution[1,:], width=self.width[1], alpha=0.7, 
+                                  label=f'Number of neurons: {self.clusters[0]}', color='limegreen')
+        self.legend = self.ax.legend()
+    
+    def _update(self, i):
+        if i<len(self.distribution)-1:
+            curr = self.distribution[i+1]
+            for s, c, cent in zip(self.moving, curr, self.center[i+1]):
+                s.set_height(c)
+                s.set_width(self.width[i+1])
+                s.set_x(cent)
+                self.legend.texts[1].set_text(f'Number of neurons: {self.clusters[i]}')
+                self.ax.set_ylim([0, np.max(curr)+np.max(curr)/10])
+        else:
+            curr = self.distribution[-1]
+            for s, c, cent in zip(self.moving, curr, self.center[-1]):
+                s.set_height(c)
+                s.set_width(self.width[-1])
+                s.set_x(cent) 
+                self.legend.texts[1].set_text(f'Number of neurons: {self.clusters[-1]}')
+        
+    def sys_anim(self, interval=100):
+        self.anim = FuncAnimation(self.fig, self._update, frames=len(self.clusters)+2, interval=interval)
+        self.anim.save('prova.gif')
+```
+
+```{python}
+anim = Animate(con_distr_bins, con_distr_density, r_clusters)
+anim.sys_anim(interval=800)
 
 ```
 
@@ -709,6 +835,48 @@ visual_style["bbox"] = (500, 500)
 visual_style["margin"] = 20
 
 ig.plot(high_lvl_brain_ig, "high_lvl_brain.pdf", **visual_style, layout="kk")
+```
+
+## Outlier analysis
+
+```{python}
+out_size = 3000
+```
+
+```{python}
+Grainer._set_clust(out_size)
+partitions = Grainer.predict(metric)
+out_graph = Grainer.zip_graph(partitions, inplace=False)
+```
+
+```{python}
+degree = np.array( [ d for n, d in out_graph.degree()] )
+density_deg, bins_deg = np.histogram(degree, 200) 
+
+avg_degree_con = nx.average_degree_connectivity(out_graph)
+avg_degree_con = np.array([i for k,i in avg_degree_con.items()])
+density_con, bins_con = np.histogram(avg_degree_con, 200, density=True) 
+```
+
+```{python}
+fig, ax = plt.subplots(1, 2,  figsize=(15, 6))
+
+ax[0].loglog()
+ax[0].plot( (bins_deg[:-1]+ bins_deg[1:])/2, density_deg, 'o')
+ax[0].plot( 30000000000000*np.arange(10, 1000).astype(float)**(-5), 'r--', label = 'power law coefficient: 5' )
+ax[0].set_ylim(0.5, 500)
+ax[0].set_xlim(10, 4000)
+ax[0].set_title('Degree distribution')
+ax[0].set_xlabel('Degree')
+ax[0].set_ylabel('Frequency')
+ax[0].legend()
+
+ax[1].bar( (bins_con[:-1]+bins_con[1:])/2, density_con, width=bins_con[1]-bins_con[0])
+ax[1].set_title('Average degree connectivity distribution')
+ax[1].set_xlabel('Average degree connectivity')
+ax[1].set_ylabel('Probability')
+
+plt.show()
 ```
 
 # To do list
@@ -769,6 +937,20 @@ plt.hist(avg_degree_connectivity, bins=200)
 plt.grid()
 plt.title("Average degree connectivity distribution")
 plt.xlabel("Average degree connectivity for degree k")
+plt.show()
+```
+
+```{python}
+avg_degree_connectivity = nx.average_degree_connectivity(graph)
+avg_degree_connectivity = np.array([i for k,i in avg_degree_connectivity.items()])
+max_avg = np.max(avg_degree_connectivity)
+print(f"Global average degree connectivity value: {int(avg_degree_connectivity.mean())}")
+
+hist, bins = np.histogram(avg_degree_connectivity, bins=200)
+#width = 0.7 * (bins[1] - bins[0])
+width = 1 * (bins[1] - bins[0])
+center = (bins[:-1] + bins[1:]) / 2
+plt.bar(center, hist, align='center', width=width)
 plt.show()
 ```
 

@@ -1,0 +1,661 @@
+---
+jupyter:
+  jupytext:
+    formats: ipynb,Rmd
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.7.1
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+import utils
+import powerlaw 
+
+# Network analysis
+import networkx as nx
+from scipy import sparse
+from fast_pagerank import pagerank_power
+# Data handling
+import pandas as pd
+# Visualization
+import matplotlib
+import matplotlib.pyplot as plt
+#import igraph as ig
+#import cairocffi as cairo
+# Miscellaneous
+import time
+import os
+import numpy as np
+from tqdm import tqdm
+
+# Communities
+from community import induced_graph
+import community as comm
+from sklearn.cluster import AgglomerativeClustering
+from collections import Counter
+```
+
+## Importing datasets
+- neurons_dataframe contains neuron number (body_id). The body_id is an [unique identifier](https://en.wikipedia.org/wiki/Unique_identifier#:~:text=A%20unique%20identifier%20(UID)%20is,with%20an%20atomic%20data%20type.). It also contains the neuron cell type (type) and the neuron unique name (instance).
+- synapses_dataframe contains the sparse connectivity matrix of the network;
+- roi_dataframe contains also the region of interest of the connection, but some of them are repeated, i.e. we have the same couple of connecting neurons in different regions (maybe they are not sure)
+
+https://asajadi.github.io/fast-pagerank/
+
+```{python}
+# False -> avoid running time-consuming cells
+PATIENCE = True
+```
+
+```{python}
+neurons_dataframe, synapses_dataframe, roi_dataframe = utils.read_datasets()
+```
+
+```{python}
+cols = list(roi_dataframe.columns)  # to use later
+print(roi_dataframe.head())
+print(f"Number of unique synapses: {roi_dataframe['synaps'].nunique()}")
+print(f"Length of ROI dataset: {len(roi_dataframe)}")
+print(f"Difference: {len(roi_dataframe) - roi_dataframe['synaps'].nunique()}")
+
+# sanity check
+assert roi_dataframe['synaps'].nunique() == len(roi_dataframe)
+```
+
+```{python}
+# key is superset, value is list of roi
+roi_supersets = {
+    'AL': ['AL(L)', 'AL(R)'],
+    'CX': ['FB', 'EB', 'PB', 'NO', 'AB(L)', 'AB(R)'],
+    'GNG': ['GNG'],
+    'INP': ['CRE(L)', 'CRE(R)', 'SCL(L)', 'SCL(R)', 'IB', 'ICL(L)', 'ICL(R)', 'ATL(L)', 'ATL(R)', 'IB'],
+    'LH': ['LH(R)'],
+    'LX': ['BU(L)', 'BU(R)','LAL(L)', 'LAL(R)'],
+    'MB': ['CA(R)','PED(R)',"a'L(L)", "a'L(R)", 'aL(L)', 'aL(R)', "b'L(L)", "b'L(R)", 'bL(L)', 'bL(R)', 'gL(L)', 'gL(R)'],
+    'OL': ['AME(R)','ME(R)','LO(R)', 'LOP(R)'],
+    'PENP': ['SAD','CAN(R)','FLA(R)'],
+    'SNP': ['SIP(L)', 'SIP(R)', 'SLP(R)', 'SMP(L)', 'SMP(R)', 'SPS(L)', 'SPS(R)'],
+    'VLNP': ['AOTU(R)','AVLP(R)','PVLP(R)','PLP(R)','WED(R)'],
+    'VMNP': ['VES(L)', 'VES(R)','EPA(L)', 'EPA(R)','GOR(L)', 'GOR(R)','SPS(L)', 'SPS(R)','IPS(R)'],
+    'NotPrimary': ['NotPrimary']
+}
+
+#roi_dataframe['superset'] = utils.map_roi_to_superset(roi_dataframe['roi'].tolist(), roi_supersets)
+roi_dataframe.head()
+```
+
+```{python}
+# sanity check
+roi = list(roi_dataframe['roi'].unique())
+removed = []
+for elem in roi:
+    for key, value in roi_supersets.items():
+        if elem in value and elem not in removed:
+            removed.append(elem)
+remains = [x for x in roi if x not in removed]
+print(f"Non-included sections: {remains}")
+```
+
+# Graph
+
+```{python}
+# key is superset, value is list of roi
+roi_supersets = {
+    'AL': 1,
+    'CX': 2,
+    'GNG': 3,
+    'INP': 4,
+    'LH': 5,
+    'LX': 6,
+    'MB': 7,
+    'OL': 8,
+    'PENP': 9,
+    'SNP': 10,
+    'VLNP': 11,
+    'VMNP': 12,
+    'NotPrimary': 13,
+}
+```
+
+```{python}
+roi_dataframe['superset_num'] = [ roi_supersets[i] for i in np.array( roi_dataframe['superset']) ]
+```
+
+```{python}
+# neuron type is attribute of the neuron in the graph, we directly extract it from the dataframe
+nodes = neurons_dataframe[['bodyId', 'type']]
+nodes_attr_dict = nodes.set_index('bodyId')['type'].to_dict()
+
+links = roi_dataframe[['synaps', 'roi', 'superset', 'weight', 'superset_num']]
+links_attr_dict_1 = links.set_index('synaps')['roi'].to_dict()
+links_attr_dict_2 = links.set_index('synaps')['superset'].to_dict()
+links_attr_dict_3 = links.set_index('synaps')['weight'].to_dict()
+links_attr_dict_4 = links.set_index('synaps')['superset_num'].to_dict()
+```
+
+```{python}
+graph = nx.Graph()
+
+graph.add_nodes_from(neurons_dataframe['bodyId'])
+nx.set_node_attributes(graph, nodes_attr_dict, 'type')
+
+graph.add_edges_from(roi_dataframe['synaps'])
+nx.set_edge_attributes(graph, links_attr_dict_1, 'roi')
+nx.set_edge_attributes(graph, links_attr_dict_2, 'superset')
+nx.set_edge_attributes(graph, links_attr_dict_4, 'superset_num')
+# nx.set_edge_attributes(graph, links_attr_dict_3, 'weight')
+```
+
+## Coarse graining
+
+```{python}
+def my_induced_graph(partition, graph, super_map):
+    """
+    super_map is dictionary 'name': value
+    """
+    ret = nx.Graph()
+    ret.add_nodes_from(partition.values())
+   
+    for node1, node2, datas in graph.edges(data=True):
+        super_vec =  np.zeros( len(super_map) )
+        edge_weight = datas.get('weight', 1)
+        edge_superset = datas.get('superset', None)
+        
+        com1 = partition[node1]
+        com2 = partition[node2]
+        w_prec = ret.get_edge_data(com1, com2, {'weight': 0}).get('weight', 1)
+        superset_prec = ret.get_edge_data(com1, com2, {'superset': super_vec}).get('superset', super_vec)
+        super_vec[super_map[edge_superset]-1] += 1
+        
+        ret.add_edge(com1, com2, **{'weight': w_prec + edge_weight,
+                                   'superset': superset_prec + super_vec} )
+
+    inv_map = {v-1: k for k, v in super_map.items()} # 'value' : name    
+    for node1, node2, datas in ret.edges(data=True):
+        s = ret[node1][node2]['superset']
+        s = inv_map[ np.argmax(s) ]
+        ret[node1][node2]['superset'] = s
+        ret[node1][node2]['superset_num'] = super_map[s]
+    
+    return ret
+```
+
+```{python}
+class ClusterGrainer():
+    def __init__(self, graph, n_clusters, preserve_roi=False, supermap = None):
+        
+        self.preserve_roi = preserve_roi
+        if self.preserve_roi and (supermap is not None):
+            self.supermap = supermap
+        elif self.preserve_roi and (supermap is None):
+            raise ValueError("Param 'preserve_roi' is True but 'supermap' has not been defined")
+        
+        self.G = graph
+        self.adj = nx.adjacency_matrix(self.G).todense()
+        self.nodes = np.array([n for n in self.G.nodes()])
+        self.clusterer = AgglomerativeClustering(n_clusters=n_clusters, affinity= 'precomputed', 
+                                                 connectivity =np.sign(self.adj), linkage='single')
+        # Statistics
+        degree = sorted([d for n, d in self.G.degree()], reverse=True)
+        avg_degree_con = nx.average_degree_connectivity(self.G)
+        avg_degree_con = np.array([i for k,i in avg_degree_con.items()])
+        fit = powerlaw.Fit(degree) 
+        self.avg_deg = np.array( [np.mean(degree), np.std(degree)]  )
+        self.avg_deg_con =  np.array( [int(avg_degree_con.mean()), avg_degree_con.std()] )
+        self.con_distr_density, self.con_distr_bins = np.histogram(avg_degree_con, 200, density=True)   # returns 2-tuple (density, edges)
+        self.power_law = np.array( [fit.alpha, fit.sigma] )
+        self.density = np.array(self.G.number_of_edges()/self.G.number_of_nodes()**2 )
+        
+        if self.preserve_roi and (supermap is not None):
+            sup_names = np.array( list(supermap.keys()) ).reshape(13, )
+            supersets = [ s for _, _, s in graph.edges.data('superset_num')]
+            _, counts = np.unique(supersets, return_counts=True)
+            self.sup_density = np.vstack(( sup_names,counts/len(supersets)) )
+        
+    def predict(self, metric_mat):
+        clusts = self.clusterer.fit_predict(metric_mat)
+        partition = { n : c for n, c in zip(self.nodes, clusts) }
+        return partition
+    
+    def zip_graph(self, partitions, inplace=True):
+        if inplace:
+            if(self.preserve_roi):
+                self.G = my_induced_graph(partitions, self.G, self.supermap)
+            else:
+                self.G = induced_graph(partitions, self.G)
+            self.adj = nx.adjacency_matrix(self.G).todense()
+            self.nodes = np.array([n for n in self.G.nodes()])
+        else:
+            if self.preserve_roi:
+                return my_induced_graph(partitions, self.G, self.supermap)
+            else:
+                return induced_graph(partitions, self.G)
+        
+    def _upd_stats(self, graph ):
+        degree = sorted([d for n, d in graph.degree()], reverse=True)
+        avg_degree_con = nx.average_degree_connectivity(graph)
+        avg_degree_con = np.array([i for k,i in avg_degree_con.items()])
+        fit = powerlaw.Fit(degree) 
+        
+        self.avg_deg = np.vstack( (self.avg_deg, [np.mean(degree), np.std(degree)])  )
+        self.avg_deg_con = np.vstack( (self.avg_deg_con, [int(avg_degree_con.mean()), avg_degree_con.std()] ))
+        temp_density, temp_bins = np.histogram(avg_degree_con, 200, density=True) 
+        self.con_distr_density = np.vstack( (self.con_distr_density, temp_density) )
+        self.con_distr_bins = np.vstack( (self.con_distr_bins, temp_bins) )
+        self.power_law = np.vstack( (self.power_law, [fit.alpha, fit.sigma]) )
+        self.density = np.append( self.density, graph.number_of_edges()/graph.number_of_nodes()**2 )
+        
+        if self.preserve_roi and (self.supermap is not None):
+            supersets = [ s for _, _, s in graph.edges.data('superset_num')]
+            _, counts = np.unique(supersets, return_counts=True)
+            self.sup_density = np.vstack(( self.sup_density,counts/len(supersets)) )
+        
+    def _set_clust(self, n_cl):
+        self.clusterer = AgglomerativeClustering(n_clusters=n_cl, affinity= 'precomputed', 
+                                                 connectivity =np.sign(self.adj), linkage='single')
+        
+    def experiment(self, n_clusters, metric_mat, inplace=False, save=False):
+        iteration_number = 1;
+        for cl in tqdm(n_clusters):
+            self._set_clust(cl)
+            partitions = self.predict(metric_mat)
+            new_graph = self.zip_graph(partitions, inplace=inplace)
+            if save:
+                nx.readwrite.gpickle.write_gpickle(new_graph, f"graph_iter_{iteration_number}.gpickle")
+                iteration_number = iteration_number + 1
+            self._upd_stats(new_graph)
+    
+    def plot_stats(self, sizes):
+        fig, ax = plt.subplots(2, 2, figsize=(12, 12))
+        ax = ax.flatten()
+        ax[0].set_xlabel('Size of the network [# of nodes]')
+        ax[0].set_ylabel('Coefficient of the power law')
+        ax[0].set_title('Evolution of the power law distribution')
+        ax[0].plot(sizes, self.power_law[:,0], 'o--', color='blue', label='Coef')
+        ax[0].fill_between(sizes, (self.power_law[:,0]+self.power_law[:,1]),
+                           (self.power_law[:,0]-self.power_law[:,1]), alpha=0.3, label='Error', color='green' )
+        ax[0].legend()
+        
+        ax[1].set_xlabel('Size of the network [# of nodes]')
+        ax[1].set_ylabel('Density #edges/(#nodes)^2')
+        ax[1].set_title('Evolution of the network density')
+        ax[1].plot(sizes, self.density, 'o--', color='blue')
+        
+        ax[2].set_xlabel('Size of the network [# of nodes]')
+        ax[2].set_ylabel('Average degree')
+        ax[2].set_title('Evolution of the average degree')
+        ax[2].plot(sizes, self.avg_deg[:,0], 'o--', color='blue', label='Average')
+        ax[2].fill_between(sizes, (self.avg_deg[:,0]+self.avg_deg[:,1]),
+                           (self.avg_deg[:,0]-self.avg_deg[:,1]), alpha=0.3, label='Error', color='green' )
+        ax[2].legend()
+        
+        ax[3].set_xlabel('Size of the network [# of nodes]')
+        ax[3].set_ylabel('Average degree connectivity')
+        ax[3].set_title('Evolution of the average degree connectivity')
+        ax[3].plot(sizes, self.avg_deg_con[:,0], 'o--', color='blue', label='Average')
+        ax[3].fill_between(sizes, (self.avg_deg_con[:,0]+self.avg_deg_con[:,1]),
+                           (self.avg_deg_con[:,0]-self.avg_deg_con[:,1]), alpha=0.3, label='Error', color='green' )
+        ax[3].legend()
+        
+        plt.show()
+```
+
+```{python}
+g = graph.copy()
+
+# following correctly raises error
+# Grainer = ClusterGrainer(g, 10000, preserve_roi=True, supermap=None)
+# following correctly works
+Grainer = ClusterGrainer(g, 10000, preserve_roi=True, supermap=roi_supersets)
+```
+
+### Upload metric from pickle
+
+```{python}
+clusters = np.arange(20000, 0, -500)
+weight_metric = np.load('exported-traced-adjacencies/pagerank_computed.npy', allow_pickle=True)
+metric = 1/weight_metric
+```
+
+```{python}
+if not PATIENCE:
+    r_clusters = clusters[1:4]
+else:
+    r_clusters = clusters
+        
+Grainer.experiment(r_clusters, metric, save=False)
+sizes = np.insert(r_clusters, 0, graph.number_of_nodes())
+```
+
+## Community plots
+
+```{python}
+colors = [ '#000000', '#67e682', '#cccccc', '#f3747e', '#8095cc', '#452664', 
+          '#f2d7aa', '#b9f6d5', '#dcfe17', '#2727e4', '#38f5a5', '#c44048',
+          '#CC5B01',  '#0793c6']
+```
+
+```{python}
+from matplotlib.animation import FuncAnimation
+class CommunityAnimate:
+    def __init__(self, density, clusters, colors=colors[1:]):
+        self.fig , self.ax = plt.subplots( figsize=(12,8))
+        self.ax.set_title("Density of synapses community", fontsize=20)
+        self.ax.set_ylabel('Density', fontsize=16)
+        self.ax.set_ylim(0,0.4)
+        # Parameters
+        self.clusters = clusters
+        self.density =  density[1:, :].astype('float64')
+        self.zones = density[0, :]
+        self.im = self.ax.bar(self.zones, self.density[0,:], color='gainsboro')
+        self.moving = self.ax.bar(self.zones, self.density[0,:], color=colors, alpha=0.7)
+        self.legend = self.ax.legend(['Number of neurons: 21733', f'Number of neurons: {clusters[0]}'],
+                                    loc='upper left', fontsize=18)
+    
+    def _update(self, i):
+        if i<len(self.density)-1:
+            curr = self.density[i, :] 
+            for s, c in zip(self.moving, curr):
+                s.set_height(c)
+                self.legend.texts[1].set_text(f'Number of neurons: {self.clusters[i]}')
+                #self.ax.set_ylim([0, np.max(curr)+np.max(curr)/10])
+        else:
+            curr = self.density[-1, :] 
+            for s, c in zip(self.moving, curr):
+                s.set_height(c)
+                self.legend.texts[1].set_text(f'Number of neurons: {self.clusters[-1]}')
+        
+    def sys_anim(self, interval=100):
+        self.anim = FuncAnimation(self.fig, self._update, frames=len(self.clusters)+2, interval=interval)
+        self.anim.save('prova.gif')
+```
+
+```{python}
+anim = CommunityAnimate(Grainer.sup_density, r_clusters[:30])
+anim.sys_anim(interval=500)
+```
+
+### Community trhough Louvain algorithm
+
+The resolution parameter will change the size of the communities, default to 1. 
+Represents the time described in “Laplacian Dynamics and Multiscale Modular Structure in Networks”, R. Lambiotte, J.-C. Delvenne, M. Barahona
+
+We say that node $i\in C_i$ where $C_i$ is the community if most of his synapses are in community $C_i$. 
+
+```{python}
+def from_edg_community_to_node_community(edges):
+    """Returns dict {node : superset_num}"""
+    node_super = {}
+    for i in tqdm(np.unique(edges[:, 0])):
+        supersets = edg[:,2][ edges[:, 0]== i ]
+        xs, counts = np.unique( supersets, return_counts=True)
+        s = xs[ np.argmax(counts) ]
+        node_super[i] = s
+
+    remainings = np.setdiff1d( np.unique(edges[:, 1]), np.unique(edges[:, 0]))
+    for i in tqdm(remainings):
+        supersets = edges[:,2][ edg[:, 1]== i ]
+        xs, counts = np.unique( supersets, return_counts=True)
+        s = xs[ np.argmax(counts) ]
+        node_super[i] = s
+        
+    return node_super
+```
+
+```{python}
+supersets_name = np.array( list(roi_supersets.keys() ) )
+```
+
+```{python}
+edg = np.array( [np.array(i) for i in graph.edges.data('superset_num')] )
+node_super = from_edg_community_to_node_community(edg)
+```
+
+```{python}
+xs, counts = np.unique( list( node_super.values()), return_counts=True)
+
+fig, ax = plt.subplots( figsize=(12,8))
+
+ax.bar(supersets_name, counts/len(node_super), color=colors[1:])
+ax.set_ylabel('Density')
+ax.set_title('Density of Neuron type')
+plt.show()
+```
+
+### From starting graph
+
+```{python}
+# Partitions with no previous knowledge
+parts_no_know = comm.best_partition(graph, partition=None, resolution=0.9)
+n_no_know = len(np.unique( list(parts_no_know.values())) )
+```
+
+```{python}
+# Partitions with  previous knowledge
+parts_know = comm.best_partition(graph, partition=node_super, resolution=0.9)
+n_know = len(np.unique( list(parts_know.values())) )
+```
+
+```{python}
+xs_no, counts_no = np.unique( list( parts_no_know.values()), return_counts=True)
+xs_know, counts_know = np.unique( list( parts_know.values()), return_counts=True)
+
+fig, ax = plt.subplots( 1, 2, figsize=(14,8))
+
+ax[0].bar(xs_no, counts_no/len(parts_no_know), color=colors[1:])
+ax[0].set_ylabel('Density')
+ax[0].set_title('Density of neuron type with no previous knowledge')
+
+ax[1].bar(xs_know, counts_know/len(parts_know), color=colors[1:])
+ax[1].set_ylabel('Density')
+ax[1].set_title('Density of neuron type with previous knowledge')
+
+plt.show()
+```
+
+```{python}
+def compare_clusters(keys_clust1, keys_clust2):
+    same = len(np.intersect1d(keys_clust1, keys_clust2))
+    length = max(len(keys_clust1), len(keys_clust2) )
+    error = 1- same/length
+    return error
+
+def key_vect(dictio, n_classes):
+    keys = [ [] for i in range(n_classes)]
+    for key, val in dictio.items():
+        keys[val-1].append(key)
+    return keys
+
+def plot_cmaps( cmat_nk, n_nk, cmat_k, n_k, n_neurons):
+    f, ax = plt.subplots(2, 1, figsize=(10,11))
+    colormap = 'ocean'
+
+    im = ax[0].matshow(cmat_nk, aspect="auto", cmap=colormap)
+    ax[0].set_ylabel('Computed clusters')
+    ax[0].set_xlabel('Correct clusters')
+    ax[0].set_title('Error for the clusters without previous knowledge')
+    ax[0].set_xticklabels(supersets_name)
+    ax[0].set_xticks(np.arange(13))
+
+    #text portion
+    x, y = np.meshgrid(np.arange(13), np.arange(n_nk))
+
+    for x_val, y_val in zip(x.flatten(), y.flatten()):
+        c = np.around( cmat_nk[y_val, x_val], decimals=2 )
+        if c>0.6 or c<0.2:
+            ax[0].text(x_val, y_val, c, va='center', ha='center')
+        else:
+            ax[0].text(x_val, y_val, c, va='center', ha='center', color='white')
+
+    ax[1].matshow(cmat_k, cmap=colormap)
+    ax[1].set_ylabel('Computed clusters')
+    ax[1].set_xlabel('Correct clusters')
+    ax[1].set_title('Error for the clusters with previous knowledge')
+    ax[1].set_xticklabels(supersets_name)
+    ax[1].set_xticks(np.arange(13))
+
+    #text portion
+    x, y = np.meshgrid(np.arange(13), np.arange(n_k))
+
+    for x_val, y_val in zip(x.flatten(), y.flatten()):
+        c = np.around( cmat_k[y_val, x_val], decimals=2 )
+        if c>0.6 or c<0.2:
+            ax[1].text(x_val, y_val, c, va='center', ha='center')
+        else:
+            ax[1].text(x_val, y_val, c, va='center', ha='center', color='white')
+
+
+    cax = plt.axes([0.95, 0.13, 0.05, 0.75 ])
+    cbar = plt.colorbar(mappable=im, cax=cax, label=f'Error with {n_neurons} neurons')
+
+    plt.show()
+```
+
+```{python}
+keys_correct = key_vect(node_super, 13)
+keys_no_know = key_vect(parts_no_know, n_no_know)
+keys_know = key_vect(parts_know, n_know)
+```
+
+```{python}
+cmat_no_know = np.zeros( (n_no_know, 13))
+for i, knk in enumerate(keys_no_know):
+    for j, kc in enumerate(keys_correct):
+        cmat_no_know[i, j] = compare_clusters(kc, knk)
+```
+
+```{python}
+cmat_know = np.zeros( (n_know, 13))
+for i, kk in enumerate(keys_know):
+    for j, kc in enumerate(keys_correct):
+        cmat_know[i, j] = compare_clusters(kc, kk)
+```
+
+```{python}
+plot_cmaps(cmat_no_know, n_no_know, cmat_know, n_know, 21733)
+```
+
+### Graining 5000, 10000, 15000 neurons
+
+```{python}
+sizes = 22000 - 1000*np.arange(5, 20, 5)
+com_graphs = []
+for s in sizes:
+    Grainer._set_clust(s)
+    partitions = Grainer.predict(metric)
+    com_graphs.append( Grainer.zip_graph(partitions, inplace=False) )
+```
+
+```{python}
+com_cmat_know = []
+com_cmat_no_know = []
+for i, g in enumerate(com_graphs):
+    edg = np.array( [np.array(i) for i in g.edges.data('superset_num')] )
+    node_super = from_edg_community_to_node_community(edg)
+    # Partitions with no previous knowledge
+    parts_no_know = comm.best_partition(g, partition=None, resolution=0.9)
+    n_no_know = len(np.unique( list(parts_no_know.values())) )
+    # Partitions with  previous knowledge
+    parts_know = comm.best_partition(g, partition=node_super, resolution=0.9)
+    n_know = len(np.unique( list(parts_know.values())) )
+    
+    keys_correct = key_vect(node_super, 13)
+    keys_no_know = key_vect(parts_no_know, n_no_know)
+    cmat_no_know = np.zeros( (n_no_know, 13))
+    for i, knk in enumerate(keys_no_know):
+        for j, kc in enumerate(keys_correct):
+            cmat_no_know[i, j] = compare_clusters(kc, knk)
+    
+    com_cmat_no_know.append( [cmat_no_know, n_no_know] )
+    
+    keys_know = key_vect(parts_know, n_know)
+    cmat_know = np.zeros( (n_know, 13))
+    for i, kk in enumerate(keys_know):
+        for j, kc in enumerate(keys_correct):
+            cmat_know[i, j] = compare_clusters(kc, kk)
+            
+    com_cmat_know.append( [cmat_know, n_know] )
+```
+
+```{python}
+for knk, kn, nn in zip(com_cmat_no_know, com_cmat_know, sizes):
+    plot_cmaps(knk[0], knk[1], kn[0], kn[1], nn)
+```
+
+## Adjacency matrix visualization
+We will visualize the adj matrix by ordering it into zones and then in decreasing degree order inside the zone
+
+```{python}
+edg = np.array( [np.array(i) for i in graph.edges.data('superset_num')] )
+node_super = from_edg_community_to_node_community(edges)
+```
+
+```{python}
+data = nx.adjacency_matrix(graph, weight='superset_num').astype(np.int8).todense()
+```
+
+```{python}
+degree = np.array([ d for n, d in graph.degree() ])
+zone = [ node_super[n] for n, d in graph.degree() ]
+```
+
+```{python}
+xs, counts = np.unique( list( node_super.values()), return_counts=True)
+sorting = np.argsort(zone)
+sorted_deg = degree[sorting]
+sorted_mat = data[sorting,:]
+nmin = 0
+nmax = 0
+for i, n in enumerate(counts):
+    nmax += n
+    sorted_mat[nmin:nmax, :] = sorted_mat[nmin:nmax, :][np.argsort(sorted_deg[nmin:nmax]) , :]
+    
+    nmin += n
+```
+
+```{python}
+colors = [ '#000000', '#67e682', '#cccccc', '#f3747e', '#8095cc', '#452664', 
+          '#f2d7aa', '#b9f6d5', '#dcfe17', '#2727e4', '#38f5a5', '#c44048',
+          '#CC5B01',  '#0793c6']
+```
+
+```{python}
+xticks_lab = ['AL', '     CX', 'GNG        ', 'INP', 'LH', 'LX', 'MB', '         OL', 'PENP        ',
+              'SNP', '            VLNP', 'VMNP', '']
+yticks_lab = ['AL', '\n \n CX', 'GNG \n \n', 'INP', 'LH', 'LX', 'MB', '\n \n OL', 'PENP \n \n',
+              'SNP', 'VLNP', 'VMNP', '']
+```
+
+```{python}
+scale = list(range(0,15))
+
+cmap=matplotlib.colors.ListedColormap(colors)
+norm=matplotlib.colors.BoundaryNorm(scale, len(colors))
+
+f = plt.figure(figsize=(15,15))
+ax = plt.axes([0, 0.05, 0.9, 0.9 ]) #left, bottom, width, height
+im = ax.matshow(sorted_mat[::-1], cmap=cmap, norm=norm)
+cax = plt.axes([0.95, 0.05, 0.05,0.9 ])
+cbar = plt.colorbar(mappable=im, cax=cax, ticks=np.linspace(0, 14, 14, endpoint=False) + 1/2, 
+                    spacing='uniform', label='Superset connection type')
+
+ticks = [str(i) for i in range(1,14)]
+cbar.ax.set_yticklabels(['No link'] + list(roi_supersets.keys()))  # vertically oriented colorbar
+cbar.ax.axes.tick_params(length=5)
+ax.set_xticks( np.abs( np.cumsum(counts)-21733) )
+ax.set_yticks( np.abs( np.cumsum(counts)-21733) )
+ax.set_xticklabels( xticks_lab )
+ax.set_yticklabels( yticks_lab )
+
+plt.show()
+```
+
+```{python}
+
+```
