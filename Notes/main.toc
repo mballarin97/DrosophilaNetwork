@@ -1,6 +1,12 @@
 \boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax 
 \babel@toc {english}{}
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {1}Drosophila brain regions}{3}{section.1}%
+\contentsline {section}{\numberline {1}Introduction }{3}{section.1}%
 \defcounter {refsection}{0}\relax 
-\contentsline {section}{\numberline {2}Coarse graining}{4}{section.2}%
+\contentsline {section}{\numberline {2}Drosophila brain regions}{4}{section.2}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {3}Coarse graining}{5}{section.3}%
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {3.1}Random aggregation}{5}{subsection.3.1}%
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {3.2}Clustering aggregation}{5}{subsection.3.2}%
