@@ -14,7 +14,7 @@ jupyter:
 ---
 
 ```{python}
-import utils
+import drosophila_utils
 import powerlaw 
 
 # Network analysis

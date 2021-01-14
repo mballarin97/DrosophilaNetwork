@@ -1,0 +1,30 @@
+\section{Robustness}
+There are a number of measures and techniques through which the robustness of a network can be assessed, and such assessment can be more or less meaningful. The main question to answer is: can the coarse graining preserve the graph's properties in such a way that its robustness can be preserved, while being simpler to operate on?
+
+For this project, we tried to assess an answer by empirically experimenting such idea. The tool of choice was TIGER\footnote{available at \href{https://github.com/safreita1/TIGER}{https://github.com/safreita1/TIGER}} (\textbf{T}oolbox for evaluat\textbf{I}ng \textbf{G}raph vuln\textbf{E}rability and \textbf{R}obustness), described in \cite{freitas2020tiger}, which implements several attack and defense techniques. 
+
+All the attacking experiments have been conducted in a consistent manner. The \textit{Largest Connected Component} (LCC) dimension has been selected as robustness measure: a larger dimension implies a more connected network and thus better robustness. Due to computational time constraints, the attacks were conducted starting from roughly half the original graph size to the coarsest graph, thus from $10500$ to $500$ neurons, with steps of $1000$ aggregated neurons. Every attack removed 30\% of the total nodes.
+
+Three attacks were considered: random attack, highest-betweenness removal attack, and cascade attack. We will now review each of them.
+
+\vspace{\baselineskip}
+\noindent \textbf{Random attack}. At each iteration a random neuron is removed from the graph. As was already known, being the Drosophila connectome a scale-free network with small-world properties, it is quite robust to random node removal. Furthermore, such robustness is kept among the graining, as can be seen in Fig. \ref{fig:rnd_atk}, where the LCC dimension decreases linearly with the number of removed nodes. 
+
+The random attack may be used to simulate a normal degrading and failure of neurons that does not  involve rejuvenation and creation of new neuronal paths. 
+
+\vspace{\baselineskip}
+\noindent \textbf{Highest-betweenness attack}. The graph global betweenness is computed at the start, and iteratively the neuron with highest betweennees is removed. This approach leads to the destruction of as many paths as possible and, although the betweenness is computed only once and not at every iteration, it is considered a global-strategy attack, as betweenness is a measure of how much the network is aggregated. Quite surprisingly from Fig. \ref{fig:ib_atk}, the network is very robust to such attack and the robustness is kept among the graining, with an effect on the LLC dimension indistinguishable from the random attack. This may be due to the fact that the presence of more hubs and super-hubs that are created in the graining procedure is able to cope with catastrophic failures of one third of the main pathways, with neurons ``promoted'' to an higher betweenness once other bridges are removed.
+
+This attack may be used to simulate the consequences of failure of the main neuronal highways in disrupting the normal neuronal activity.
+	
+\vspace{\baselineskip}
+\noindent \textbf{Cascading attack}.The last attack represents a cascading failure. Let's first consider an example to have a better idea of the mechanism. Consider an electrical grid where a central substation goes offline. In order to maintain the distribution of power, neighboring substations have to increase production in order to meet demand. However, if this is not possible, the neighboring substation fails, which in turn causes additional neighboring substations to fail. The end result is a series of cascading failures, i.e., a blackout.
+
+For this attack, we have made some strong, worst-case assumption: the net has redundancy parameter $r = 0.1$, i.e., 10\% of the network is dedicated to redundancy; the (normalized) starting load of each neuron is $l=0.8$; the maximum capacity of each node before failure is $c = 0.2 \times N$, with $N$ total number of nodes. Furthermore, the attack is conducted like the previous one, but the cascade is made by removing by strictly looking for the highest-betweenness neighbor of the removed node.
+
+Again, as can be seen in Fig. \ref{fig:cascading_atk} the results are quite consistent across the graining. Furthermore, due to the creation of super-hubs in coarse graining, roughly between $19000$ and $2000$ nodes and that disappears below the latter number, such procedure is destructive very quickly, as it consistently attacks first the hubs, shattering the LCC within very few iterations. This kind of behavior is nonetheless expected and in line with the scale-free, small-world characteristic of the net.
+
+This attack may be used to simulate the progressive failure of a whole neuronal region, due to heavy hits that cause brain damages, or degenerative illnesses.
+
+\vspace{\baselineskip}
+\noindent \textbf{Final remarks.} Although a more exhaustive examination of the coarse graining procedure should be applied, considering more attacks and measures, we can positively say that a first answer to the question is yes, the coarse graining procedure seems able to preserve the graph's robustness properties.
