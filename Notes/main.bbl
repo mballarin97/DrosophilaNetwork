@@ -50,6 +50,113 @@
       \verb 2006.05648
       \endverb
     \endentry
+    \entry{hagberg2008exploring}{report}{}
+      \name{author}{3}{}{%
+        {{hash=26c7c223c453d1038c264e22b5d93dc5}{%
+           family={Hagberg},
+           familyi={H\bibinitperiod},
+           given={Aric},
+           giveni={A\bibinitperiod}}}%
+        {{hash=811a2520e0a9908568242b65860d00d4}{%
+           family={Swart},
+           familyi={S\bibinitperiod},
+           given={Pieter},
+           giveni={P\bibinitperiod}}}%
+        {{hash=d0b7bfef113df305724962a9a3cd9b80}{%
+           family={S\bibnamedelima Chult},
+           familyi={S\bibinitperiod\bibinitdelim C\bibinitperiod},
+           given={Daniel},
+           giveni={D\bibinitperiod}}}%
+      }
+      \list{institution}{1}{%
+        {Los Alamos National Lab.(LANL), Los Alamos, NM (United States)}%
+      }
+      \strng{namehash}{1d395456dadedc798afedab49d02a7c4}
+      \strng{fullhash}{1d395456dadedc798afedab49d02a7c4}
+      \strng{bibnamehash}{1d395456dadedc798afedab49d02a7c4}
+      \strng{authorbibnamehash}{1d395456dadedc798afedab49d02a7c4}
+      \strng{authornamehash}{1d395456dadedc798afedab49d02a7c4}
+      \strng{authorfullhash}{1d395456dadedc798afedab49d02a7c4}
+      \field{sortinit}{H}
+      \field{sortinithash}{6db6145dae8dc9e1271a8d556090b50a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Exploring network structure, dynamics, and function using NetworkX}
+      \field{type}{techreport}
+      \field{year}{2008}
+    \endentry
+    \entry{xu2020connectome}{article}{}
+      \true{moreauthor}
+      \true{morelabelname}
+      \name{author}{10}{}{%
+        {{hash=e7620740612b992954f6827731d72526}{%
+           family={Xu},
+           familyi={X\bibinitperiod},
+           given={C\bibnamedelima Shan},
+           giveni={C\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=61c229bc7f02786310a41ea02eb51aec}{%
+           family={Januszewski},
+           familyi={J\bibinitperiod},
+           given={Michal},
+           giveni={M\bibinitperiod}}}%
+        {{hash=093d54edf4a2751500a727fb6b155547}{%
+           family={Lu},
+           familyi={L\bibinitperiod},
+           given={Zhiyuan},
+           giveni={Z\bibinitperiod}}}%
+        {{hash=be016b8df459a3dbb2f2c533050df070}{%
+           family={Takemura},
+           familyi={T\bibinitperiod},
+           given={Shin-ya},
+           giveni={S\bibinithyphendelim y\bibinitperiod}}}%
+        {{hash=b5e6b71eb96ca96d14562caebd67fb20}{%
+           family={Hayworth},
+           familyi={H\bibinitperiod},
+           given={Kenneth},
+           giveni={K\bibinitperiod}}}%
+        {{hash=fd8e354bce6ca65066112def89eeb74c}{%
+           family={Huang},
+           familyi={H\bibinitperiod},
+           given={Gary},
+           giveni={G\bibinitperiod}}}%
+        {{hash=ad9f960ec25bf5efee02f4e8b3995e56}{%
+           family={Shinomiya},
+           familyi={S\bibinitperiod},
+           given={Kazunori},
+           giveni={K\bibinitperiod}}}%
+        {{hash=1f4aacb2ba85897e27c2a5faf68a621c}{%
+           family={Maitin-Shepard},
+           familyi={M\bibinithyphendelim S\bibinitperiod},
+           given={Jeremy},
+           giveni={J\bibinitperiod}}}%
+        {{hash=7f64f5e079a2d6df6fdddb2412714608}{%
+           family={Ackerman},
+           familyi={A\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod}}}%
+        {{hash=25f931fc5b6689b9e0b4c5e273a7bf75}{%
+           family={Berg},
+           familyi={B\bibinitperiod},
+           given={Stuart},
+           giveni={S\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Cold Spring Harbor Laboratory}%
+      }
+      \strng{namehash}{83fe373f53bef9bfd3966ef3343deedc}
+      \strng{fullhash}{6fcdd926509ac8bce47d13404c79d996}
+      \strng{bibnamehash}{83fe373f53bef9bfd3966ef3343deedc}
+      \strng{authorbibnamehash}{83fe373f53bef9bfd3966ef3343deedc}
+      \strng{authornamehash}{83fe373f53bef9bfd3966ef3343deedc}
+      \strng{authorfullhash}{6fcdd926509ac8bce47d13404c79d996}
+      \field{sortinit}{X}
+      \field{sortinithash}{e90038f30fa4b9ce59606fc8347e3cc7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{BioRxiv}
+      \field{title}{A connectome of the adult drosophila central brain}
+      \field{year}{2020}
+    \endentry
   \enddatalist
 \endrefsection
 \endinput

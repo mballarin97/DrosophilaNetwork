@@ -64,7 +64,9 @@ full time evolution we would see that there is an initial decreasing in the dens
 We finally want to analyze how the community detection varies along the coarse 
 graining, and to understand if we are able to recover the given community through
 the network structure using the Louvain algorithm, which optimizes the modularity
-of the communities.
+of the communities. We choose as resolution parameter $0.7$. It is 
+linked to the precision in the community detection, i.e. the number 
+of communities founded is inversely proportional to the resolution.
 The modularity is defined as:
 \begin{equation}
     Q = \frac{1}{2m}\sum_{ij} \left[A_{ij}-\frac{k_ik_j}{2m}\right] \delta(C_i, C_j)
@@ -76,11 +78,35 @@ Kronecker delta function.
 We take as correct the neuronal community defined in the previous section from the synapses,
 $C_i^{(cor)}$, and compute the error $\epsilon_i$ of the community $C_i^{(alg)}$, computed by
 the algorithm, as:
-\begin{equation}
+\begin{equation} \label{eq:com_er}
     \epsilon_i = 1- \frac{\left|C_i^{(cor)} \bigcap C_i^{(alg)}\right| }{\max{\left(\left|C_i^{(cor)}\right|, \left|C_i^{(alg)}\right|\right)}}
 \end{equation}
 where with $|\cdot|$ we denote the cardinality, i.e. the number of element, of a set and with $\bigcap$
-the intersection operation.
+the intersection operation. Basically we are looking at the number of shared neurons in the two communities, 
+and then we divide by the largest community. In this way we do not incur in the problem 
+of a big community which fully contains a smaller one having a small error. 
+Notice that the error is defined in $[0,1]$.
 
 We apply the Louvain algorithm both starting from the correct communities and without previous knowledge.
-The results are shown in Figure \ref{fig:cmaps}
+The results are shown in Figure \ref{fig:cmaps}. We present the results
+using confusion matrices, where on the x-axis we have the correct labels
+and on the y-axis the predicted ones. Notice that we do not have a preferred
+order in the predicted regions, and it is so important to check the error with
+all the possible regions. We notice that the two regions more easily
+detected are the central complex and the mushroom body, which are well
+detected also in the case of no previous knowledge. We notice that it is 
+more difficult to detect the small communities, but it can be a bias of
+how we have defined the error. We indeed notice a very interesting feature: 
+with the coarse graining we decrease the error with no previous knowledge. For example, 
+in the starting case we have an error on the central complex of $0.15$, which
+becomes $0.14$ with $1700$ neurons and $0.06$ with $12000$ neurons! The error
+increase again if we grain further, with $0.38$ with $7000$. Using the correct 
+communities as starting communities we see that the MB and the CX are almost
+perfectly detected. The others communities are instead not detected 
+particularly well. We only have a partial recognition of VLNP.
+
+What is important in this analysis is that we have highlight two regions
+of the drosophila brain that are easily detected and modular. This result
+is also interesting for the function of these two regions: they are both
+involved in learning and memory. This detail can be interesting for further
+studying. 

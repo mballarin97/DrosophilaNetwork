@@ -1,26 +1,26 @@
 In this work we will analyze the structural connectome of a Drosophila, commonly known as 
-“small fruit fly”. We will use the hemibrane dataset provided by the FlyEM project[instert
-citation], which is composed by $20000$ neurons connected by $200000$ synapses. The size
+“small fruit fly”. We will use the hemibrane dataset provided by the FlyEM project\cite{xu2020connectome}, which is composed by $21733$ neurons connected by $2760725$ synapses. The size
 of the resulting network is overwhelming, and lots of the more advanced analysis are 
 not feasible in this framework. For this reason, borrowing the terminology from statistical
-physics, we will apply a coarse graining to the network, reducing its size. We will then 
-apply several different analysis. This report will be organized as follows:
-\begin{enumerate}
-    \item An introduction on the data available, focusing on the macro-areas of the Drosophila
-        brain. We strongly believe that, even if a deep physiological understanding is not 
-        necessary, it will really enhance the understanding of the measures we will apply,
-        making this work not a simple application of the network science tools to a different
-        topic, but an interesting case of study;
-    \item A definition of the coarse graining technique that we will use to reduce the size 
-        of the network;
-    \item An analysis of the simplest network characteristics, on both the grained and the 
-        original network, focusing on the evolution of such quantities;
-    \item A research for the different communities in the networks;
-    \item The robustness of the network, simulating brain damage. What happens if we damage
-        the reduced network and then expand it to the original size? Is this equivalent to 
-        remove the same number of nodes from the original network?
-    \item A conclusion to wrap up our results.
-\end{enumerate}
+physics, we will apply a coarse graining to the network, reducing its size and monitoring
+important metrics. 
 
-\red{\tb{The introduction is not finished yet. However, it is difficult to write it before
-the end of the work.}}
+The dataset contains a complete set of the neuron cell type, which we will
+not use, and of the synaptic weights and their brain zones. We will mainly use
+the python library Networkx\cite{hagberg2008exploring} for the analysis.
+
+
+This report will be organized as follows:
+\begin{enumerate}
+    \item This brief introduction;
+    \item A definition of the coarse graining technique that we will use to reduce the size 
+        of the network, with the evaluation of important metrics of a graph. We will 
+        focus on the results of the coarse graining on the network;
+    \item The robustness of the network, simulating brain damage. 
+    \item An application of the community detection algorithm, confronting the results
+        with the knowledge that we have in the dataset. In particular, we will try to understand
+        also from a physiological point of view which are the reasons of the results
+        that we will obtain;
+    \item A conclusion to wrap up the results obtained, presenting some 
+        ideas for future works.
+\end{enumerate}
