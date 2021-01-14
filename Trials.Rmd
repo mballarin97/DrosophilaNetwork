@@ -56,6 +56,7 @@ neurons_dataframe.head()
 ```
 
 ```{python}
+
 print(synapses_dataframe.head())
 print(f"Number of unique synapses: {synapses_dataframe['synaps'].nunique()}")
 print(f"Length of synapses dataset: {len(synapses_dataframe)}")
@@ -69,11 +70,7 @@ print(f"Length of synapses dataset: {len(synapses_dataframe)}")
 #### Hemibrain regions of interest
 
 ```{python}
-cols = list(roi_dataframe.columns)  # to use later
-print(roi_dataframe.head())
-print(f"Number of unique synapses: {roi_dataframe['synaps'].nunique()}")
-print(f"Length of ROI dataset: {len(roi_dataframe)}")
-print(f"Difference: {len(roi_dataframe) - roi_dataframe['synaps'].nunique()}")
+
 
 # sanity check
 assert roi_dataframe['synaps'].nunique() == len(roi_dataframe)
@@ -111,6 +108,7 @@ for elem in roi:
             removed.append(elem)
 remains = [x for x in roi if x not in removed]
 print(f"Non-included sections: {remains}")
+
 ```
 
 ## Graph
@@ -127,11 +125,13 @@ links_attr_dict_3 = links.set_index('synaps')['weight'].to_dict()
 ```
 
 ```{python}
+
 print((roi_dataframe['synaps'][0]))
 print(type(roi_dataframe['synaps'][0]))
 ```
 
 ```{python}
+
 graph = nx.Graph()
 
 graph.add_nodes_from(neurons_dataframe['bodyId'])
@@ -195,11 +195,13 @@ temp = roi_dataframe.copy()
 temp['superset_number'] = map_superset_to_number(roi_dataframe['superset'].tolist())
 temp['roi_number'] = map_roi_to_number(roi_dataframe['roi'].tolist())
 
+
 # map the synaps superset to numeric categorical, and use it as weight
 temp['weight'] = temp['superset_number']
 links = temp[['synaps', 'roi', 'superset', 'weight']]
 links_attr_dict_1 = links.set_index('synaps')['weight'].to_dict()
 # nx.set_edge_attributes(graph, links_attr_dict_1, 'weight')
+
 ```
 
 ```{python}
@@ -459,6 +461,7 @@ print("Total time: {:.2f} seconds".format((end_time - start_time)))
 ```{python}
 coarse.plot_stat()
 ```
+
 
 ```{python}
 d = np.array( coarse.density[0:-1:200] )
@@ -784,6 +787,7 @@ class Animate:
 ```{python}
 anim = Animate(con_distr_bins, con_distr_density, r_clusters)
 anim.sys_anim(interval=800)
+
 ```
 
 ```{python}
