@@ -1,26 +1,31 @@
 In this work we will analyze the structural connectome of a Drosophila, commonly known as 
 “small fruit fly”. We will use the hemibrane dataset provided by the FlyEM project\cite{xu2020connectome}, which is composed by $21733$ neurons connected by $2760725$ synapses. The size
 of the resulting network is overwhelming, and lots of the more advanced analysis are 
-not feasible in this framework. For this reason, borrowing the terminology from statistical
+not feasible with this size. For this reason, borrowing the terminology from statistical
 physics, we will apply a coarse graining to the network, reducing its size and monitoring
 important metrics. 
 
 The dataset contains a complete set of the neuron cell type, which we will
-not use, and of the synaptic weights and their brain zones. We will mainly use
-the python library Networkx\cite{hagberg2008exploring} for the analysis.
+not use. Furthermore, it presents the synaptic weights and their brain zones. 
+We will not go into the details of how this dataset has been constructed, since the understanding
+of the biomedical techniques involved is beyond the scope of this report.
+We will mainly use the python library Networkx\cite{hagberg2008exploring} for the analysis, 
+which provides many useful and optimized algorithms for handling networks. All the code developed
+for this project will be freely accessible on this github page \textbf{[INSERT HYPERLINK]}
 
 
 This report will be organized as follows:
-\begin{enumerate}
-    \item This brief introduction;
-    \item A definition of the coarse graining technique that we will use to reduce the size 
-        of the network, with the evaluation of important metrics of a graph. We will 
-        focus on the results of the coarse graining on the network;
-    \item The robustness of the network, simulating brain damage. 
-    \item An application of the community detection algorithm, confronting the results
-        with the knowledge that we have in the dataset. In particular, we will try to understand
-        also from a physiological point of view which are the reasons of the results
-        that we will obtain;
-    \item A conclusion to wrap up the results obtained, presenting some 
-        ideas for future works.
-\end{enumerate}
+\begin{itemize}
+    \item In Section \ref{sec:intro} we present this brief introduction;
+    \item In Section \ref{sec:coarse} we present a definition of the coarse graining technique that we will use to reduce the size 
+        of the network, with the evaluation of important metrics of the graph and their 
+        evolution along the procedure;
+    \item In Section \ref{sec:rob} we present the study of the network robustness, simulating brain damage. 
+    \item In Section \ref{sec:comm} we present an application of the community detection algorithm, confronting the results
+        with the knowledge provided by the dataset. In particular, we will try to understand
+        also from a physiological point of view the results;
+    \item In Section \ref{sec:concl} we conclude the work, wrapping up the results obtained, presenting some 
+        ideas for future works;
+    \item In Section \ref{sec:app} we provide an appendix, where we show all the figures
+     of this report.
+\end{itemize}

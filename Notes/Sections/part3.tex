@@ -1,8 +1,8 @@
-\section{Communities}
+\section{Communities \label{sec:comm}}
 We analyze here the community detection task. As we already state we have the synapses location
-is an entry of the dataset. However, certain synapses had different locations. We so decided to
+as an entry of the dataset. However, certain synapses had different locations. We so decided to
 select the simplest path possible, and assign to the synapse $i$ the community (location) $C_i$
-if the relative entry has the highest weight value. We present now the different zones of the 
+if $C_i$ has the highest weight value. We present now the different zones of the 
 drosophila brain: 
 \begin{enumerate}
     \item \tb{AL}: antennal lobe.
@@ -52,7 +52,7 @@ to keep track of it. The synapses between the supernode $I$ and the supernode $J
 of the clustering coarse graining is in the community $C_l$ if most of the old synapses between
 nodes in $I$ and $J$ belonged to the community $C_l$.
 
-In Figure \ref{fig:com_evol} we show the synapses communities at the initial size and after the
+In Figure \ref{fig:com_evol} we show the synaptic and neuronal communities at the initial size and after the
 coarse graining. We can understand, by recalling our method for the community graining, that the 
 zones that lose density are more sparse, i.e. not a lot of the synapses of the same community connects
 same areas, while the ones that increases are more strongly interconnected. We so understand that the zones
