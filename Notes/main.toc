@@ -19,6 +19,8 @@
 \defcounter {refsection}{0}\relax 
 \contentsline {subsection}{\numberline {3.3}Cascading attack}{7}{subsection.3.3}%
 \defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {3.4} Final remarks}{8}{subsection.3.4}%
+\defcounter {refsection}{0}\relax 
 \contentsline {section}{\numberline {4}Communities }{9}{section.4}%
 \defcounter {refsection}{0}\relax 
 \contentsline {subsection}{\numberline {4.1}Community detection}{10}{subsection.4.1}%

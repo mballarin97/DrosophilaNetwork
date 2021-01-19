@@ -1,7 +1,10 @@
 \section{Communities \label{sec:comm}}
 We analyze here the community detection task. As we already state we have the synapses location
-as an entry of the dataset. However, certain synapses had different locations. We so decided to
-select the simplest path possible, and assign to the synapse $i$ the community (location) $C_i$
+as an entry of the dataset. However, certain synapses had different locations.
+This is due to the fact that, even if different zones are more specialized 
+in one task, the brain should be considered more as a global entity than as the union 
+of different zones.
+Nevertheless, we decided to select the simplest path possible, and assign to the synapse $i$ the community (location) $C_i$
 if $C_i$ has the highest weight value. We present now the different zones of the 
 drosophila brain: 
 \begin{enumerate}
@@ -12,7 +15,9 @@ drosophila brain:
     \item \tb{CX}: Central complex. It is the center that is assigned to
          navigation, sleep, learning, memory, nociception (perception of pain);
     \item \tb{GNG}:gnathal ganglia, devoted to taste and feeding;
-    \item \tb{INP}: Inferior neuropils;
+    \item \tb{INP}: Inferior neuropils. It is an area in the nervous system composed of mostly unmyelinated axons, dendrites and glial 
+        cell processes that forms a synaptically dense region containing a relatively low number 
+        of cell bodies;     
     \item \tb{LH}: Lateral horn. It is one of the two areas of the insect brain where projection
          neurons of the antennal lobe send their axons. The other area is the mushroom body.
          Several morphological classes of neurons in the lateral horn receive olfactory 
@@ -27,15 +32,16 @@ drosophila brain:
          olfactory information from the antennal lobe via projection neurons;
     \item \tb{OL}: Optical lobe. It sits behind the eye and is responsible for the processing
          of the visual information. It is made up of three layers;
-    \item \tb{PENP}: periesophageal neuropils;
-    \item \tb{SNP}: Superior neuropils;
-    \item \tb{VLNP}: Ventrolateral neuropils;
-    \item \tb{VMNP}: ventromedial neuropils;
+    \item \tb{PENP}: periesophageal neuropils, which has the same properties 
+        of the \tb{INP} zone;
+    \item \tb{SNP}: Superior neuropils, which has the same properties 
+        of the \tb{INP} zone;
+    \item \tb{VLNP}: Ventrolateral neuropils, which has the same properties 
+        of the \tb{INP} zone;
+    \item \tb{VMNP}: ventromedial neuropils, which has the same properties 
+        of the \tb{INP} zone;
     \item \tb{Not Primary}: other zones which are not clearly defined.
 \end{enumerate}
-Neuropil (or "neuropile") is any area in the nervous system composed of mostly unmyelinated axons, dendrites and glial 
-cell processes that forms a synaptically dense region containing a relatively low 
-number of cell bodies. 
 
 In most cases what we need are the communities of nodes, not the one of edges. We so define a 
 simple rule to translate the information from the edges to the nodes: 
@@ -54,7 +60,7 @@ nodes in $I$ and $J$ belonged to the community $C_l$.
 
 In Figure \ref{fig:com_evol} we show the synaptic and neuronal communities at the initial size and after the
 coarse graining. We can understand, by recalling our method for the community graining, that the 
-zones that lose density are more sparse, i.e. not a lot of the synapses of the same community connects
+zones that loose density are more sparse, i.e. not a lot of the synapses of the same community connects
 same areas, while the ones that increases are more strongly interconnected. We so understand that the zones
 that are more strongly interconnected are the Mushroom body, the Central Complex and the lateral horn.
 The superior neuropils also increases, but its relative increase is minimal, and by looking at the 

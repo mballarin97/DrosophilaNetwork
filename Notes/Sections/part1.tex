@@ -57,7 +57,7 @@ We so perform the following steps:
     \item Apply the clustering algorithm;
     \item Combine nodes in the same cluster in a supernode $I$, which is connected to another 
         supernode $J$ if at least a node in $I$ was connected in a node in $J$. The weight of the 
-        connection is the sum of the weights fo the single nodes, i.e.:
+        connection is the sum of the weights of the single nodes, i.e.:
         $$
         W_{IJ} = \sum_{k\in I, l\in J} w_{kl}
         $$
@@ -66,8 +66,12 @@ This algorithm has several advantages over the previous one:
 \begin{itemize}
     \item We do not have to impose the density constraint to avoid the proliferation of the 
         connections;
-    \item We have to compute the distance matrix only once. This can not seem an advantage.
-        In the random algorithm we had to compute the distance from a node $N\cdot (N-N')$,
+    \item We have to compute the distance matrix only once. 
+        In this way the algorithm
+        is performed over the distance of the original network, and so we are combining
+        nodes only based on the original distance, and not by a closeness induced by the 
+        coarse graining itself.
+        Furthermore, in the random algorithm we had to compute the distance from a node $N\cdot (N-N')$,
         where $N$ is the total number of nodes and $N'$ the final number of nodes after the 
         coarse graining, while in the clustering case we must compute the distance $N^2$ times.
         However, if we want to try different $N'$ or run the algorithm multiple times in the 
@@ -94,9 +98,8 @@ nodes considered nearer. The metrics are the followings:
         and incoming links. We expect much better results with this metric.
 \end{enumerate}
 
-We present in this report only the results for the clustering algorithm using the local page rank
-metric. This choice has been done to keep the report shorter, focusing only on the interesting
-results.
+We present in this report only the results for the clustering algorithm using the local page rank,
+ since this metric is particularly significant and widely used in network science.
 
 \subsection{Metrics evolution}
 We will mainly focus on five different aspects to analyze along the graining procedure, shown in
@@ -115,7 +118,7 @@ Figure \ref{fig:coarse_evol}:
         \end{equation}
         It increases really slowly initially, but grows quickly when we 
         reach lower number of neurons, after $5000$. This behavior is sensible, since we are really
-        zipping the graph structure at these stages, and when the number of neurons goes to $0$ also
+        reducing the graph structure at these stages, and when the number of neurons goes to $0$ also
         the number of edges does so, i.e.:
         $$
         \lim_{N'\rightarrow 0} \rho = 1
@@ -142,5 +145,6 @@ visible, as we have also seen in Figure \ref{fig:n3000}. This is again due to th
 removes the nodes that are in the middle from the degree point of view, dividing the network in hubs
 and lowly connected nodes.
 
-We have finally understood, from many metrics, the effect of the coarse graining on the network structure:
-the elimination of the nodes with “middle-degree”.
+We have finally understood, from many metrics, the effect of the coarse graining on the network structure.
+It initially creates super-hubs, combining hubs with other nodes, effectively increasing the number of 
+connection of such structures. This evolution can also be seen as the elimination of the nodes with “middle-degree”.
